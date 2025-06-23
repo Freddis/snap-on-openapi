@@ -23,6 +23,7 @@ import {OpenApiNarrowConfig} from './types/OpenApiNarrowConfig';
 import {Logger} from './services/Logger/Logger';
 import {DescriptionChecker} from './services/DescriptionChecker/DescriptionChecker';
 import {DevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';
+import {ClientGenerator} from './services/ClientGenerator/ClientGenerator';
 
 
 export class OpenApi<
@@ -62,6 +63,7 @@ export class OpenApi<
   public readonly factory: RoutingFactory<TRouteTypes, TSpec>;
   public readonly developmentUtils: DevelopmentUtils;
   public readonly schemaGenerator: SchemaGenerator<TRouteTypes, TSpec>;
+  public readonly clientGenerator: ClientGenerator<TRouteTypes, TErrorCodes, TSpec> = new ClientGenerator(this);
   protected spec: TSpec;
   protected descriptionChecker: DescriptionChecker;
 

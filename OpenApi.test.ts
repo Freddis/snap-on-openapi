@@ -1,45 +1,14 @@
 import {describe, expect, test} from 'vitest';
-import {OpenApi} from './OpenApi';
+import {TestUtils} from './services/TestUtils/TestUtils';
 import {OpenApiMethods} from './enums/OpenApiMethods';
 import z from 'zod';
+import {TestRoute} from './services/TestUtils/types/TestRoute';
 
 describe('OpenApi', () => {
   test('Happy Path', async () => {
-    enum RouteType {
-      Public = 'Public',
-    }
-    enum ErrorType {
-      ApiError = 'ApiError'
-    }
-    const config = OpenApi.createConfig(RouteType, ErrorType,
-      {
-        ApiError: {
-          description: 'An error occurred while processing the request.',
-          status: '500',
-          validator: z.object({
-            message: z.string(),
-          }),
-        },
-      },
-      {
-        Public: {
-          authorization: false,
-          context: async () => ({}),
-          errors: {},
-        },
-      },
-      {
-        defaultErrorResponse: {
-          message: 'Unknown error',
-        },
-        handleError: function() {
-          throw new Error('Function not implemented.');
-        },
-        skipDescriptionsCheck: true,
-      });
-    const api = new OpenApi(RouteType, ErrorType, config);
+    const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
-      type: RouteType.Public,
+      type: TestRoute.Public,
       method: OpenApiMethods.get,
       path: 'test',
       description: '',

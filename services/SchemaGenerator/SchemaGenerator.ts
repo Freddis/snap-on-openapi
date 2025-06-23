@@ -31,6 +31,7 @@ export class SchemaGenerator<
     const yaml = stringify(document, {aliasDuplicateObjects: false});
     return yaml;
   }
+
   public saveYaml(path: string) {
     this.logger.info('Generating YAML for Open API');
     const yaml = this.getYaml();
