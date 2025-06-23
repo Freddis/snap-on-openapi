@@ -11,7 +11,7 @@ TErrorConfigMap extends OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
  = {
   routes: TRouteConfigMap
   errors: TErrorConfigMap
-  handleError?: (e: unknown) => {
+  handleError: (e: unknown) => {
     code: TErrorCodes[keyof TErrorCodes],
     body: OpenApiErrorResponse<OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>>
   }

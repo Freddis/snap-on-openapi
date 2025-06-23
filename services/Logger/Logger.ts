@@ -1,4 +1,4 @@
-import { LogLevel } from "./types/LogLevel";
+import {LogLevel} from './types/LogLevel';
 
 
 export class Logger {

@@ -22,7 +22,7 @@ import {RouteConfigMap} from './types/RouteConfigMap';
 import {OpenApiErrorConfigMap} from './types/OpenApiErrorConfigMap';
 import {OpenApiBuiltInError} from './types/errors/OpenApiBuiltInError';
 import {OpenApiNarrowConfig} from './types/OpenApiNarrowConfig';
-import { Logger } from './services/Logger/Logger';
+import {Logger} from './services/Logger/Logger';
 
 
 export class OpenApi<

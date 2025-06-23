@@ -1,18 +1,24 @@
 {
   "name": "strap-on-openapi",
-  "version": "1.0.0",
+  "author": "Alex Sarychev",
+  "version": "1.0.3",
   "description": "",
   "type": "module",
-  "main": "index.ts",
+  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+   "exports": {
+    ".": [
+      "./dist/index.js",
+      "./dist/index.d.ts"
+    ]
+  },
   "scripts": {
     "build": "tsc",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "lint": "eslint . --fix"
   },
-  "exports": {
-    ".": "./index.ts"
-  },
-  "author": "Alex Sarychev",
-  "license": "ISC",
   "dependencies": {
     "yaml": "^2.8.0",
     "zod": "^3.25.67",
@@ -20,7 +26,10 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.3",
+    "eslint": "^9.29.0",
+    "eslint-plugin-import": "^2.32.0",
     "jest": "^30.0.2",
+    "typescript-eslint": "^8.34.1",
     "vitest": "^3.2.4"
   }
 }

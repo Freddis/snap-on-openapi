@@ -1,15 +1,15 @@
 import {
-  z, 
-  ZodArray, 
+  z,
+  ZodArray,
   ZodDefault,
-  ZodFirstPartyTypeKind, 
-  ZodObject, 
+  ZodFirstPartyTypeKind,
+  ZodObject,
   ZodOptional,
-  ZodRawShape, 
-  ZodString, 
-  ZodTypeAny, 
-  ZodUnion, 
-  ZodUnionOptions
+  ZodRawShape,
+  ZodString,
+  ZodTypeAny,
+  ZodUnion,
+  ZodUnionOptions,
 } from 'zod';
 import {OpenApiValidationError} from '../../types/errors/OpenApiValidationError';
 import {ValidationLocations} from '../../enums/ValidationLocations';

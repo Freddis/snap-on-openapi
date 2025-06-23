@@ -6,7 +6,7 @@ import {z, ZodObject, ZodRawShape} from 'zod';
 import {OpenApiConfig} from '../../types/OpenApiConfig';
 import {OpenApiErrorConfig} from '../../types/OpenApiErrorConfig';
 import {OpenApiMethods} from '../../enums/OpenApiMethods';
-import { Logger } from '../Logger/Logger';
+import {Logger} from '../Logger/Logger';
 
 export class SchemaGenerator<
   TRouteTypes extends Record<string, string>,

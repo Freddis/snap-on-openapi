@@ -1,5 +1,4 @@
 import {OpenApiErrorConfigMap} from './OpenApiErrorConfigMap';
-import {OpenApiErrorResponse} from './OpenApiErrorResponse';
 import {OpenApiNarrowConfig} from './OpenApiNarrowConfig';
 import {RouteConfigMap} from './RouteConfigMap';
 
