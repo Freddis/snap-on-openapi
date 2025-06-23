@@ -14,7 +14,6 @@ import {
 import {OpenApiValidationError} from '../../types/errors/OpenApiValidationError';
 import {ValidationLocations} from '../../enums/ValidationLocations';
 
-
 export class Validator {
 
   validatePath(validator: ZodObject<ZodRawShape> | undefined, path: Record<string, string>) {

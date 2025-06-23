@@ -1,0 +1,64 @@
+import z, {ZodTypeAny, ZodArray, ZodObject, ZodRawShape} from 'zod';
+import {OpenApiRoute} from '../../types/OpenApiRoute';
+
+export class DescriptionChecker {
+
+  public checkRoutes(routes: OpenApiRoute<string>[]) {
+    for (const route of routes) {
+      this.checkRouteDescriptions(route);
+    }
+  }
+
+  protected checkRouteDescriptions(route: OpenApiRoute<string>) {
+    const minimalLength = 10;
+    if (!route.description || route.description.length < minimalLength) {
+      throw new Error(`Description for ${route.path} is missing or too small`);
+    }
+    this.checkValidatorDescriptions(route, 'responseValidator', 'responseValidator', route.validators.response);
+    this.checkValidatorDescriptions(route, 'pathValidator', 'pathValidator', route.validators.path ?? z.object({}), false);
+    this.checkValidatorDescriptions(route, 'queryValidator', 'queryValidator', route.validators.query ?? z.object({}), false);
+    if (route.method === 'POST' && route.validators.body) {
+      this.checkValidatorDescriptions(route, 'bodyValidator', 'bodyValidator', route.validators.body ?? z.object({}), false);
+    }
+  }
+
+  protected checkValidatorDescriptions(
+      route: OpenApiRoute<string>,
+      validatorName: string,
+      field: string | undefined,
+      validator: ZodTypeAny,
+      checkValidatorDescription = true,
+    ) {
+    const openapi = validator._def.openapi;
+    if (checkValidatorDescription && !openapi?.description) {
+      throw new Error(
+          `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field ${field}`,
+        );
+    }
+      // console.log(validator._def.typeName)
+    if (validator._def.typeName === 'ZodArray') {
+      const arr = validator as ZodArray<ZodObject<ZodRawShape>>;
+      const nonPrimitiveArray = arr.element.shape !== undefined;
+      if (nonPrimitiveArray) {
+        this.checkShapeDescription(route, validatorName, arr.element.shape);
+      }
+    }
+    if (validator._def.typeName === 'ZodEffects') {
+      const msg = `Route '${route.method}:${route.path}': ${validatorName} on field ${field}: usage of transformers is forbidden`;
+      throw new Error(msg);
+    }
+    if (validator._def.typeName === 'ZodObject') {
+      const obj = validator as ZodObject<ZodRawShape>;
+      this.checkShapeDescription(route, validatorName, obj.shape);
+    }
+  }
+  protected checkShapeDescription(
+      route: OpenApiRoute<string>,
+      validatorName: string, shape: ZodRawShape
+    ) {
+    for (const field of Object.keys(shape)) {
+      const value = shape[field] as ZodObject<ZodRawShape>;
+      this.checkValidatorDescriptions(route, validatorName, field, value);
+    }
+  }
+}

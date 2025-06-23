@@ -1,5 +1,5 @@
 {
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts","./**/*.html"],
   "exclude": ["./**/*.test.ts","./dist"],
   "compilerOptions": {
     "outDir": "dist",

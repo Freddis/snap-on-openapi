@@ -26,10 +26,14 @@ export class SchemaGenerator<
     this.routeSpec = spec;
   }
 
-  public saveYaml(path: string) {
-    this.logger.info('Generating YAML for Open API');
+  public getYaml(): string {
     const document = this.createDocument();
     const yaml = stringify(document, {aliasDuplicateObjects: false});
+    return yaml;
+  }
+  public saveYaml(path: string) {
+    this.logger.info('Generating YAML for Open API');
+    const yaml = this.getYaml();
     writeFileSync(path, yaml);
   }
 

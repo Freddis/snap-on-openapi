@@ -1,10 +1,8 @@
 import 'zod-openapi/extend';
 import {
   z,
-  ZodArray,
   ZodObject,
   ZodRawShape,
-  ZodTypeAny,
   ZodUnion,
   ZodUnionOptions,
 } from 'zod';
@@ -23,6 +21,8 @@ import {OpenApiErrorConfigMap} from './types/OpenApiErrorConfigMap';
 import {OpenApiBuiltInError} from './types/errors/OpenApiBuiltInError';
 import {OpenApiNarrowConfig} from './types/OpenApiNarrowConfig';
 import {Logger} from './services/Logger/Logger';
+import {DescriptionChecker} from './services/DescriptionChecker/DescriptionChecker';
+import {DevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';
 
 
 export class OpenApi<
@@ -33,6 +33,7 @@ export class OpenApi<
   protected routes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
   protected logger: Logger;
   protected basePath = '';
+
   public readonly validators = {
     paginatedQuery: <X extends ZodRawShape>(filter: X) =>
       z
@@ -59,76 +60,33 @@ export class OpenApi<
     },
   };
   public readonly factory: RoutingFactory<TRouteTypes, TSpec>;
+  public readonly developmentUtils: DevelopmentUtils;
+  public readonly schemaGenerator: SchemaGenerator<TRouteTypes, TSpec>;
   protected spec: TSpec;
+  protected descriptionChecker: DescriptionChecker;
 
 
   constructor(a: TRouteTypes, b: TErrorCodes, spec: TSpec) {
     this.spec = spec;
     this.logger = new Logger('OpenAPI');
+    this.descriptionChecker = new DescriptionChecker();
+    this.developmentUtils = new DevelopmentUtils();
     this.factory = new RoutingFactory<TRouteTypes, TSpec>(spec);
+    this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), this.spec, this.routes);
   }
 
 
   public addRoute(pathExtension: string, routes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[]) {
     const newRoutes = routes.map((x) => ({...x, path: pathExtension + x.path}));
+    if (!this.spec.skipDescriptionsCheck) {
+      this.descriptionChecker.checkRoutes(newRoutes);
+    }
     this.routes.push(...newRoutes);
   }
 
   public addRouteMap(routeMap: OpenApiRouteMap<TRouteTypes[keyof TRouteTypes]>) {
     for (const row of routeMap) {
       this.addRoute(row.path, row.routes);
-    }
-  }
-  protected checkRouteDescriptions(route: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>) {
-    const minimalLength = 10;
-    if (!route.description || route.description.length < minimalLength) {
-      throw new Error(`Description for ${route.path} is missing or too small`);
-    }
-    this.checkValidatorDescriptions(route, 'responseValidator', 'responseValidator', route.validators.response);
-    this.checkValidatorDescriptions(route, 'pathValidator', 'pathValidator', route.validators.path ?? z.object({}), false);
-    this.checkValidatorDescriptions(route, 'queryValidator', 'queryValidator', route.validators.query ?? z.object({}), false);
-    if (route.method === 'POST' && route.validators.body) {
-      this.checkValidatorDescriptions(route, 'bodyValidator', 'bodyValidator', route.validators.body ?? z.object({}), false);
-    }
-  }
-
-  protected checkValidatorDescriptions(
-    route: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>,
-    validatorName: string,
-    field: string | undefined,
-    validator: ZodTypeAny,
-    checkValidatorDescription = true,
-  ) {
-    const openapi = validator._def.openapi;
-    if (checkValidatorDescription && !openapi?.description) {
-      throw new Error(
-        `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field ${field}`,
-      );
-    }
-    // console.log(validator._def.typeName)
-    if (validator._def.typeName === 'ZodArray') {
-      const arr = validator as ZodArray<ZodObject<ZodRawShape>>;
-      const nonPrimitiveArray = arr.element.shape !== undefined;
-      if (nonPrimitiveArray) {
-        this.checkShapeDescription(route, validatorName, arr.element.shape);
-      }
-    }
-    if (validator._def.typeName === 'ZodEffects') {
-      const msg = `Route '${route.method}:${route.path}': ${validatorName} on field ${field}: usage of transformers is forbidden`;
-      throw new Error(msg);
-    }
-    if (validator._def.typeName === 'ZodObject') {
-      const obj = validator as ZodObject<ZodRawShape>;
-      this.checkShapeDescription(route, validatorName, obj.shape);
-    }
-  }
-  protected checkShapeDescription(
-    route: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>,
-    validatorName: string, shape: ZodRawShape
-  ) {
-    for (const field of Object.keys(shape)) {
-      const value = shape[field] as ZodObject<ZodRawShape>;
-      this.checkValidatorDescriptions(route, validatorName, field, value);
     }
   }
 
@@ -278,11 +236,6 @@ export class OpenApi<
     }
   }
 
-  public saveYaml(path: string) {
-    const generator = new SchemaGenerator(this.logger.getInvoker(), this.spec, this.routes);
-    generator.saveYaml(path);
-  }
-
   public static createConfig<
     TRouteTypes extends Record<string, string>,
     TErrorCodes extends Record<string, string>,
@@ -297,7 +250,7 @@ export class OpenApi<
     spec: Omit<TSpec, 'errors'|'routes'>
   ): TSpec {
     const result: TSpec = {
-      handleError: spec.handleError,
+      ...spec,
       routes,
       errors: errors,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

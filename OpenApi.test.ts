@@ -35,6 +35,7 @@ describe('OpenApi', () => {
         handleError: function() {
           throw new Error('Function not implemented.');
         },
+        skipDescriptionsCheck: true,
       });
     const api = new OpenApi(RouteType, ErrorType, config);
     const route = api.factory.createRoute({

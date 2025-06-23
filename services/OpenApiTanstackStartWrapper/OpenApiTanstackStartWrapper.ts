@@ -1,5 +1,6 @@
 import {OpenApi} from '../../OpenApi';
 import {OpenApiConfig} from '../../types/OpenApiConfig';
+import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 import {TanStackApiRoute} from './types/TanStackAPIRoute';
 import {TanstackStartRoutingFunc} from './types/TanstackStartRoutingFunc';
 
@@ -9,9 +10,56 @@ export class OpenApiTanstackStartWrapper<
   TSpec extends OpenApiConfig<TRouteTypes, TErrorCodes>
 > {
   protected service: OpenApi<TRouteTypes, TErrorCodes, TSpec>;
+  protected developmentUtils: DevelopmentUtils;
 
   constructor(openApi: OpenApi<TRouteTypes, TErrorCodes, TSpec>) {
     this.service = openApi;
+    this.developmentUtils = new DevelopmentUtils();
+  }
+
+  createStoplightRoute<T extends string>(schemaRoutePath: string, path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
+    const processor = async () => {
+      const body = this.developmentUtils.getStoplightHtml(schemaRoutePath);
+      const res = new Response(body, {
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      });
+      return res;
+    };
+    return router(path)({
+      GET: processor,
+    });
+  }
+
+  createSwaggerRoute<T extends string>(schemaRoutePath: string, path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
+    const processor = async () => {
+      const body = this.developmentUtils.getSwaggerHTML(schemaRoutePath);
+      const res = new Response(body, {
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      });
+      return res;
+    };
+    return router(path)({
+      GET: processor,
+    });
+  }
+
+  createSchemaRoute<T extends string>(path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
+    const processor = async () => {
+      const body = this.service.schemaGenerator.getYaml();
+      const res = new Response(body, {
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      });
+      return res;
+    };
+    return router(path)({
+      GET: processor,
+    });
   }
 
   createOpenApiRootRoute<T extends string>(path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {

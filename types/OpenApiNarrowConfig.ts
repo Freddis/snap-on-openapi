@@ -16,4 +16,5 @@ TErrorConfigMap extends OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
     body: OpenApiErrorResponse<OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>>
   }
   defaultErrorResponse: object
+  skipDescriptionsCheck?: boolean;
 }

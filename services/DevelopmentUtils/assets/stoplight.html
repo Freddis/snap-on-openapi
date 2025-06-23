@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Title</title>
+    <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css" />
+    <script defer>
+      const darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = darkMode ? "dark" : "light";
+      document.documentElement.style.colorScheme = darkMode ? "dark" : "light";
+    </script>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .sl-code-viewer {
+          background: #fafafa;
+          color: black;
+          filter: invert(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <elements-api apiDescriptionUrl="/api/openapi" router="hash" style="height: 100%;"/>
+  </body>
+</html>
