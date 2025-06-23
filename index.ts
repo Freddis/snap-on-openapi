@@ -10,6 +10,6 @@ export type {OpenApiErrorConfigMap} from './types/OpenApiErrorConfigMap';
 export {OpenApiMethods} from './enums/OpenApiMethods';
 export {OpenApiErrorCode} from './enums/OpenApiErrorCode';
 export {OpenApiError} from './types/errors/OpenApiError';
-export {OpenApi as OpenApiService} from './OpenApi';
+export {OpenApi} from './OpenApi';
 export type {OpenApiRoute} from './types/OpenApiRoute';
 

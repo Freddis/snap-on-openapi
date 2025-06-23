@@ -1,21 +1,21 @@
 {
   "name": "strap-on-openapi",
   "author": "Alex Sarychev",
-  "version": "1.0.3",
-  "description": "",
+  "version": "1.0.12",
+  "description": "Swiftly build type-checked OpenAPI applications with Zod and TypeScript",
   "type": "module",
   "license": "ISC",
   "files": [
     "dist"
   ],
-   "exports": {
+  "exports": {
     ".": [
       "./dist/index.js",
       "./dist/index.d.ts"
     ]
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "test": "vitest --run",
     "lint": "eslint . --fix"
   },
@@ -29,6 +29,7 @@
     "eslint": "^9.29.0",
     "eslint-plugin-import": "^2.32.0",
     "jest": "^30.0.2",
+    "tsc-alias": "^1.8.16",
     "typescript-eslint": "^8.34.1",
     "vitest": "^3.2.4"
   }

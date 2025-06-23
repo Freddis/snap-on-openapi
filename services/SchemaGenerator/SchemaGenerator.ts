@@ -125,7 +125,6 @@ export class SchemaGenerator<
       const description = errors.map((x) => x.description).join(' or ');
       const validators = errors.map((x) => x.validator) as [ZodObject<ZodRawShape>, ZodObject<ZodRawShape>];
       const schema = errors.length === 1 ? error.validator : z.union(validators).openapi({unionOneOf: true});
-      console.log(schema);
       operation.responses[error.status] = {
         description: description,
         content: {

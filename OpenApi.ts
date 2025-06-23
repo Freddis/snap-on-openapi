@@ -51,7 +51,7 @@ export class OpenApi<
           .object({
             count: z.number().openapi({description: 'Total number of items'}),
             page: z.number().openapi({description: 'Current page'}),
-            pageSize: z.number().openapi({description: 'Number of items per page'}),
+            pageSize: z.number().openapi({description: 'Number of itemss per page'}),
           })
           .openapi({description: 'Pagination details'}),
       }),
