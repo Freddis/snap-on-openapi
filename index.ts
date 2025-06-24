@@ -1,6 +1,7 @@
 //enums
 export {Methods as OpenApiMethods} from './enums/Methods';
 export {ErrorCode as OpenApiErrorCode} from './enums/ErrorCode';
+export {SampleRouteType as OpenApiSampleRouteType} from './enums/SampleRouteType';
 export {ValidationLocations as OpenApiValidationLocation} from './enums/ValidationLocations';
 
 //errors
