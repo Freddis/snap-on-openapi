@@ -2,6 +2,7 @@
   "include": ["./**/*.ts","./**/*.html"],
   "exclude": ["./**/*.test.ts","./dist"],
   "compilerOptions": {
+    "rootDir": ".",
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,

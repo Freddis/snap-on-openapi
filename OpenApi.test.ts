@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {TestUtils} from './services/TestUtils/TestUtils';
-import {OpenApiMethods} from './enums/OpenApiMethods';
+import {Methods} from './enums/Methods';
 import z from 'zod';
 import {TestRoute} from './services/TestUtils/types/TestRoute';
 import {OpenApi} from './OpenApi';
@@ -10,7 +10,7 @@ describe('OpenApi', () => {
     const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
       type: TestRoute.Public,
-      method: OpenApiMethods.get,
+      method: Methods.GET,
       path: 'test',
       description: '',
       validators: {
@@ -76,7 +76,7 @@ describe('OpenApi', () => {
       customApi.addRoute('/', [
         customApi.factory.createRoute({
           type: RouteType.User,
-          method: OpenApiMethods.get,
+          method: Methods.GET,
           path: '',
           description: 'Default Api Route',
           validators: {

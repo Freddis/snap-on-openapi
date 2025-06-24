@@ -3,22 +3,22 @@ import {stringify} from 'yaml';
 import {createDocument, ZodOpenApiObject, ZodOpenApiOperationObject, ZodOpenApiParameters, ZodOpenApiPathsObject} from 'zod-openapi';
 import {AnyRoute} from '../../types/AnyRoute';
 import {z, ZodObject, ZodRawShape} from 'zod';
-import {OpenApiConfig} from '../../types/OpenApiConfig';
-import {OpenApiErrorConfig} from '../../types/OpenApiErrorConfig';
-import {OpenApiMethods} from '../../enums/OpenApiMethods';
+import {Config} from '../../types/config/Config';
+import {ErrorConfig} from '../../types/config/ErrorConfig';
+import {Methods} from '../../enums/Methods';
 import {Logger} from '../Logger/Logger';
 
 export class SchemaGenerator<
   TRouteTypes extends Record<string, string>,
-  TSpec extends OpenApiConfig<TRouteTypes, Record<string, string>>
+  TConfig extends Config<TRouteTypes, Record<string, string>>
 > {
   protected logger: Logger;
   protected basePath: string = '';
   protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[];
-  protected routeSpec: TSpec;
+  protected routeSpec: TConfig;
   constructor(
     invoker: string,
-    spec: TSpec,
+    spec: TConfig,
     routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]
   ) {
     this.logger = new Logger(SchemaGenerator.name, invoker);
@@ -110,10 +110,10 @@ export class SchemaGenerator<
       },
     };
     const enabledErrors = Object.keys(this.routeSpec.routes[route.type].errors);
-    const httpStatusMap: Map<string, OpenApiErrorConfig<ZodObject<ZodRawShape>>[]> = new Map();
+    const httpStatusMap: Map<string, ErrorConfig<ZodObject<ZodRawShape>>[]> = new Map();
     for (const [key, error] of Object.entries(this.routeSpec.errors)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const errorConfig = error as any as OpenApiErrorConfig<ZodObject<ZodRawShape>>;
+      const errorConfig = error as any as ErrorConfig<ZodObject<ZodRawShape>>;
       if (!enabledErrors.includes(key)) {
         continue;
       }
@@ -146,7 +146,7 @@ export class SchemaGenerator<
         },
       ];
     }
-    if (route.method !== OpenApiMethods.get) {
+    if (route.method !== Methods.GET) {
       operation.requestBody = {
         content: {
           'application/json': {schema: route.validators.body},

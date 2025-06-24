@@ -1,47 +1,47 @@
 import {ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
-import {OpenApiMethods} from '../../enums/OpenApiMethods';
-import {BaseOpenApiRoute} from '../../types/BaseOpenApiRoute';
-import {OpenApiConfig} from '../../types/OpenApiConfig';
+import {Methods} from '../../enums/Methods';
+import {Route} from '../../types/Route';
+import {Config} from '../../types/config/Config';
 
 export class RoutingFactory<
  TRouteTypes extends Record<string, string>,
- TSpec extends OpenApiConfig<TRouteTypes, Record<string, string>>
+ TConfig extends Config<TRouteTypes, Record<string, string>>
 > {
-  protected map: TSpec;
+  protected map: TConfig;
 
-  constructor(map: TSpec) {
+  constructor(map: TConfig) {
     this.map = map;
   }
 
   public createRoute<
       TRouteType extends TRouteTypes[keyof TRouteTypes],
-      TMethod extends OpenApiMethods,
+      TMethod extends Methods,
       TResponseValidator extends ZodFirstPartySchemaTypes,
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TPathValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TBodyValidator extends ZodObject<ZodRawShape> | undefined = undefined,
     >(
-      params: BaseOpenApiRoute<
+      params: Route<
         TRouteType,
-        Awaited<ReturnType<TSpec['routes'][TRouteType]['context']>>,
+        Awaited<ReturnType<TConfig['routes'][TRouteType]['context']>>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
         TBodyValidator,
         TMethod
       >// & TPropsMap[TRouteType]
-    ): BaseOpenApiRoute<
+    ): Route<
         TRouteTypes[keyof TRouteTypes],
-        Awaited<ReturnType<TSpec['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
+        Awaited<ReturnType<TConfig['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
         TBodyValidator
       > {
 
-    const result : BaseOpenApiRoute<
+    const result : Route<
       TRouteTypes[keyof TRouteTypes],
-      Awaited<ReturnType<TSpec['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
+      Awaited<ReturnType<TConfig['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
       TResponseValidator,
       TPathValidator,
       TQueryValidator,

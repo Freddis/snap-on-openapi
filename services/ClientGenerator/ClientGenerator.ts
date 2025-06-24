@@ -1,15 +1,15 @@
 import {createClient, UserConfig} from '@hey-api/openapi-ts';
 import {OpenApi} from '../../OpenApi';
-import {OpenApiConfig} from '../../types/OpenApiConfig';
+import {Config} from '../../types/config/Config';
 import {parse} from 'yaml';
 
 export class ClientGenerator<
   TRouteTypes extends Record<string, string>,
   TErrorCodes extends Record<string, string>,
-  TSpec extends OpenApiConfig<TRouteTypes, TErrorCodes>> {
-  protected api: OpenApi<TRouteTypes, TErrorCodes, TSpec>;
+  TConfig extends Config<TRouteTypes, TErrorCodes>> {
+  protected api: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
 
-  constructor(api :OpenApi<TRouteTypes, TErrorCodes, TSpec>) {
+  constructor(api :OpenApi<TRouteTypes, TErrorCodes, TConfig>) {
     this.api = api;
   }
   async generate(config: Partial<Omit<UserConfig, 'input'>> = {}) {

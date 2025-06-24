@@ -1,13 +1,13 @@
-import {OpenApiErrorConfigMap} from './OpenApiErrorConfigMap';
-import {OpenApiNarrowConfig} from './OpenApiNarrowConfig';
+import {ErrorConfigMap} from './ErrorConfigMap';
+import {NarrowConfig} from './NarrowConfig';
 import {RouteConfigMap} from './RouteConfigMap';
 
-export type OpenApiConfig<
+export type Config<
 TRouteTypes extends Record<string, string>,
 TErrorCodes extends Record<string, string>
-> = OpenApiNarrowConfig<
+> = NarrowConfig<
   TRouteTypes,
   TErrorCodes,
   RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes] >,
-  OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
+  ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
  >

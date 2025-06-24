@@ -1,4 +1,4 @@
-export enum OpenApiErrorCode {
+export enum ErrorCode {
   UnknownError = 'UnknownError',
   ValidationFailed = 'ValidationFailed',
   NotFound = 'NotFound',

@@ -1,14 +1,14 @@
 import {z, ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
-import {OpenApiMethods} from '../enums/OpenApiMethods';
+import {Methods} from '../enums/Methods';
 
-export interface BaseOpenApiRoute<
+export interface Route<
   TType extends string,
   TContext extends object,
   TResponseValidator extends ZodFirstPartySchemaTypes,
   TPathValidator extends ZodObject<ZodRawShape> | undefined,
   TQueryValidator extends ZodObject<ZodRawShape> | undefined,
   TBodyValidator extends ZodObject<ZodRawShape> | undefined,
-  TMethod extends OpenApiMethods = OpenApiMethods
+  TMethod extends Methods = Methods
 > {
   type: TType,
   method: TMethod,

@@ -1,6 +1,6 @@
 export enum ValidationLocations {
-  query = 'query',
-  path = 'path',
-  body = 'body',
-  response = 'response',
+  Query = 'Query',
+  Path = 'Path',
+  Body = 'Body',
+  Response = 'Response',
 }

@@ -1,4 +1,4 @@
-export abstract class OpenApiError<TCode extends string> extends Error {
+export abstract class ApiError<TCode extends string> extends Error {
   private code: TCode;
   constructor(code: TCode) {
     super(code);

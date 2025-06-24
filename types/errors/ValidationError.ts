@@ -1,14 +1,14 @@
 import {ZodError} from 'zod';
-import {OpenApiErrorCode} from '../../enums/OpenApiErrorCode';
-import {OpenApiError} from './OpenApiError';
+import {ErrorCode} from '../../enums/ErrorCode';
 import {ValidationLocations} from '../../enums/ValidationLocations';
+import {BuiltInError} from './BuiltInError';
 
-export class OpenApiValidationError extends OpenApiError<OpenApiErrorCode> {
+export class ValidationError extends BuiltInError {
   private error: ZodError<unknown>;
   private location: ValidationLocations;
 
   constructor(error: ZodError<unknown>, location: ValidationLocations) {
-    super(OpenApiErrorCode.ValidationFailed);
+    super(ErrorCode.ValidationFailed);
     this.error = error;
     this.location = location;
   }

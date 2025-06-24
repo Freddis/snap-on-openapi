@@ -1,19 +1,19 @@
-import {OpenApiErrorConfigMap} from './OpenApiErrorConfigMap';
-import {OpenApiErrorResponse} from './OpenApiErrorResponse';
+import {ErrorConfigMap} from './ErrorConfigMap';
+import {ErrorResponse} from './ErrorResponse';
 import {RouteConfigMap} from './RouteConfigMap';
 
-export type OpenApiNarrowConfig<
+export type NarrowConfig<
 TRouteTypes extends Record<string, string>,
 TErrorCodes extends Record<string, string>,
 TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes]>,
-TErrorConfigMap extends OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
+TErrorConfigMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
 >
  = {
   routes: TRouteConfigMap
   errors: TErrorConfigMap
   handleError: (e: unknown) => {
     code: TErrorCodes[keyof TErrorCodes],
-    body: OpenApiErrorResponse<OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>>
+    body: ErrorResponse<ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>>
   }
   defaultErrorResponse: object
   skipDescriptionsCheck?: boolean;

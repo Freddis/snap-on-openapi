@@ -1,18 +1,18 @@
 import {OpenApi} from '../../OpenApi';
-import {OpenApiConfig} from '../../types/OpenApiConfig';
+import {Config} from '../../types/config/Config';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 import {TanStackApiRoute} from './types/TanStackAPIRoute';
 import {TanstackStartRoutingFunc} from './types/TanstackStartRoutingFunc';
 
-export class OpenApiTanstackStartWrapper<
+export class TanstackStartWrapper<
  TRouteTypes extends Record<string, string>,
   TErrorCodes extends Record<string, string>,
-  TSpec extends OpenApiConfig<TRouteTypes, TErrorCodes>
+  TConfig extends Config<TRouteTypes, TErrorCodes>
 > {
-  protected service: OpenApi<TRouteTypes, TErrorCodes, TSpec>;
+  protected service: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
   protected developmentUtils: DevelopmentUtils;
 
-  constructor(openApi: OpenApi<TRouteTypes, TErrorCodes, TSpec>) {
+  constructor(openApi: OpenApi<TRouteTypes, TErrorCodes, TConfig>) {
     this.service = openApi;
     this.developmentUtils = new DevelopmentUtils();
   }

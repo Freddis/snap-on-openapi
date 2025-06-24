@@ -1,4 +1,4 @@
-import {AnyRoute} from './AnyRoute';
+import {AnyRoute} from '../AnyRoute';
 
 export type ContextParams<TRouteType extends string> = {
   route: AnyRoute<TRouteType>

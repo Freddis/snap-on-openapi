@@ -11,7 +11,7 @@ import {
   ZodUnion,
   ZodUnionOptions,
 } from 'zod';
-import {OpenApiValidationError} from '../../types/errors/OpenApiValidationError';
+import {ValidationError} from '../../types/errors/ValidationError';
 import {ValidationLocations} from '../../enums/ValidationLocations';
 
 export class Validator {
@@ -20,7 +20,7 @@ export class Validator {
     const result = this.convertStringsAndSafeParse(
         validator?.strict() ?? z.object({}),
         path,
-        ValidationLocations.query,
+        ValidationLocations.Query,
       );
     return result;
   }
@@ -29,7 +29,7 @@ export class Validator {
     const result = this.convertStringsAndSafeParse(
         validator?.strict() ?? z.object({}),
         query,
-        ValidationLocations.query,
+        ValidationLocations.Query,
       );
     return result;
   }
@@ -122,7 +122,7 @@ export class Validator {
     const initialValidator = z.object(initialValidatorShape).strict();
     const initialResult = initialValidator.safeParse(data);
     if (!initialResult.success) {
-      throw new OpenApiValidationError(initialResult.error, paramSourceName);
+      throw new ValidationError(initialResult.error, paramSourceName);
     }
     const transformedParams: Record<string, unknown> = {};
     for (const field of Object.keys(finalShape)) {
