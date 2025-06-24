@@ -1,7 +1,7 @@
 import {writeFileSync} from 'fs';
 import {stringify} from 'yaml';
 import {createDocument, ZodOpenApiObject, ZodOpenApiOperationObject, ZodOpenApiParameters, ZodOpenApiPathsObject} from 'zod-openapi';
-import {OpenApiRoute} from '../../types/OpenApiRoute';
+import {AnyRoute} from '../../types/AnyRoute';
 import {z, ZodObject, ZodRawShape} from 'zod';
 import {OpenApiConfig} from '../../types/OpenApiConfig';
 import {OpenApiErrorConfig} from '../../types/OpenApiErrorConfig';
@@ -14,12 +14,12 @@ export class SchemaGenerator<
 > {
   protected logger: Logger;
   protected basePath: string = '';
-  protected routes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[];
+  protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[];
   protected routeSpec: TSpec;
   constructor(
     invoker: string,
     spec: TSpec,
-    routes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[]
+    routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]
   ) {
     this.logger = new Logger(SchemaGenerator.name, invoker);
     this.routes = routes;
@@ -90,7 +90,7 @@ export class SchemaGenerator<
   }
 
   protected createOperation(
-    route: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>
+    route: AnyRoute<TRouteTypes[keyof TRouteTypes]>
   ): ZodOpenApiOperationObject {
     const requestParams: ZodOpenApiParameters = {
       query: route.validators.query,

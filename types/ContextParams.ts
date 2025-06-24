@@ -1,7 +1,7 @@
-import {OpenApiRoute} from './OpenApiRoute';
+import {AnyRoute} from './AnyRoute';
 
 export type ContextParams<TRouteType extends string> = {
-  route: OpenApiRoute<TRouteType>
+  route: AnyRoute<TRouteType>
   request: Request,
   params: {
     body: unknown

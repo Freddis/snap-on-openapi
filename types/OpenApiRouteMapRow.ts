@@ -1,6 +1,6 @@
-import {OpenApiRoute} from './OpenApiRoute';
+import {AnyRoute} from './AnyRoute';
 
 export interface OpenApiRouteMapRow<TRouteType extends string> {
   path: string,
-  routes: OpenApiRoute<TRouteType>[]
+  routes: AnyRoute<TRouteType>[]
 }

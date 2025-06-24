@@ -1,15 +1,15 @@
 import z, {ZodTypeAny, ZodArray, ZodObject, ZodRawShape} from 'zod';
-import {OpenApiRoute} from '../../types/OpenApiRoute';
+import {AnyRoute} from '../../types/AnyRoute';
 
 export class DescriptionChecker {
 
-  public checkRoutes(routes: OpenApiRoute<string>[]) {
+  public checkRoutes(routes: AnyRoute<string>[]) {
     for (const route of routes) {
       this.checkRouteDescriptions(route);
     }
   }
 
-  protected checkRouteDescriptions(route: OpenApiRoute<string>) {
+  protected checkRouteDescriptions(route: AnyRoute<string>) {
     const minimalLength = 10;
     if (!route.description || route.description.length < minimalLength) {
       throw new Error(`Description for ${route.path} is missing or too small`);
@@ -23,13 +23,13 @@ export class DescriptionChecker {
   }
 
   protected checkValidatorDescriptions(
-      route: OpenApiRoute<string>,
+      route: AnyRoute<string>,
       validatorName: string,
       field: string | undefined,
       validator: ZodTypeAny,
       checkValidatorDescription = true,
     ) {
-    const openapi = validator._def.openapi;
+    const openapi = validator._def.openapi ?? validator._def.zodOpenApi?.openapi;
     if (checkValidatorDescription && !openapi?.description) {
       throw new Error(
           `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field ${field}`,
@@ -53,7 +53,7 @@ export class DescriptionChecker {
     }
   }
   protected checkShapeDescription(
-      route: OpenApiRoute<string>,
+      route: AnyRoute<string>,
       validatorName: string, shape: ZodRawShape
     ) {
     for (const field of Object.keys(shape)) {

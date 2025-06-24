@@ -1,15 +1,8 @@
 import 'zod-openapi/extend';
-import {
-  z,
-  ZodObject,
-  ZodRawShape,
-  ZodUnion,
-  ZodUnionOptions,
-} from 'zod';
 import {OpenApiErrorCode} from './enums/OpenApiErrorCode';
 import {ValidationLocations} from './enums/ValidationLocations';
 import {OpenApiValidationError} from './types/errors/OpenApiValidationError';
-import {OpenApiRoute} from './types/OpenApiRoute';
+import {AnyRoute} from './types/AnyRoute';
 import {RoutingFactory} from './services/RoutingFactory/RoutingFactory';
 import {OpenApiRouteMap} from './types/OpenApiRouteMap';
 import {SchemaGenerator} from './services/SchemaGenerator/SchemaGenerator';
@@ -24,61 +17,37 @@ import {Logger} from './services/Logger/Logger';
 import {DescriptionChecker} from './services/DescriptionChecker/DescriptionChecker';
 import {DevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';
 import {ClientGenerator} from './services/ClientGenerator/ClientGenerator';
-
+import {ValidationUtils} from './services/ValidationUtils/ValidationUtils';
+import {OpenApiSampleRouteType} from './types/OpenApiSampleRouteType';
+import z from 'zod';
 
 export class OpenApi<
   TRouteTypes extends Record<string, string>,
   TErrorCodes extends Record<string, string>,
-  TSpec extends OpenApiConfig<TRouteTypes, TErrorCodes>
+  TConfig extends OpenApiConfig<TRouteTypes, TErrorCodes>
 > {
-  protected routes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
+  public readonly validators: ValidationUtils = new ValidationUtils();
+  public readonly factory: RoutingFactory<TRouteTypes, TConfig>;
+  public readonly schemaGenerator: SchemaGenerator<TRouteTypes, TConfig>;
+  public readonly clientGenerator: ClientGenerator<TRouteTypes, TErrorCodes, TConfig> = new ClientGenerator(this);
+
+  protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
   protected logger: Logger;
   protected basePath = '';
-
-  public readonly validators = {
-    paginatedQuery: <X extends ZodRawShape>(filter: X) =>
-      z
-        .object({
-          page: z.number().optional().openapi({description: 'Page number'}),
-          pageSize: z.number().min(1).max(50).optional().default(10).openapi({
-            description: 'Number of items to display in the page.',
-          }),
-        })
-        .extend(filter)
-        .openapi({description: 'Pagination parameters'}),
-    paginatedResponse: <T extends ZodObject<ZodRawShape>| ZodUnion<ZodUnionOptions>>(arr: T) =>
-      z.object({
-        items: z.array(arr).openapi({description: 'Page or items'}),
-        info: z
-          .object({
-            count: z.number().openapi({description: 'Total number of items'}),
-            page: z.number().openapi({description: 'Current page'}),
-            pageSize: z.number().openapi({description: 'Number of itemss per page'}),
-          })
-          .openapi({description: 'Pagination details'}),
-      }),
-    objects: {
-    },
-  };
-  public readonly factory: RoutingFactory<TRouteTypes, TSpec>;
-  public readonly developmentUtils: DevelopmentUtils;
-  public readonly schemaGenerator: SchemaGenerator<TRouteTypes, TSpec>;
-  public readonly clientGenerator: ClientGenerator<TRouteTypes, TErrorCodes, TSpec> = new ClientGenerator(this);
-  protected spec: TSpec;
+  protected developmentUtils: DevelopmentUtils;
+  protected spec: TConfig;
   protected descriptionChecker: DescriptionChecker;
 
-
-  constructor(a: TRouteTypes, b: TErrorCodes, spec: TSpec) {
+  protected constructor(a: TRouteTypes, b: TErrorCodes, spec: TConfig) {
     this.spec = spec;
     this.logger = new Logger('OpenAPI');
     this.descriptionChecker = new DescriptionChecker();
     this.developmentUtils = new DevelopmentUtils();
-    this.factory = new RoutingFactory<TRouteTypes, TSpec>(spec);
+    this.factory = new RoutingFactory<TRouteTypes, TConfig>(spec);
     this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), this.spec, this.routes);
   }
 
-
-  public addRoute(pathExtension: string, routes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[]) {
+  public addRoute(pathExtension: string, routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]) {
     const newRoutes = routes.map((x) => ({...x, path: pathExtension + x.path}));
     if (!this.spec.skipDescriptionsCheck) {
       this.descriptionChecker.checkRoutes(newRoutes);
@@ -92,8 +61,8 @@ export class OpenApi<
     }
   }
 
-  protected getRouteForPath(path: string, method: string): OpenApiRoute<TRouteTypes[keyof TRouteTypes]> | null {
-    const fittingRoutes: OpenApiRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
+  protected getRouteForPath(path: string, method: string): AnyRoute<TRouteTypes[keyof TRouteTypes]> | null {
+    const fittingRoutes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
     outer:
     for (const route of this.routes) {
       if (route.method === method) {
@@ -127,7 +96,7 @@ export class OpenApi<
       const urlPath = url.pathname.replace(basePath, '');
       const route = this.getRouteForPath(urlPath, originalReq.method);
       if (!route) {
-        this.logger.info(`Route for ${originalReq.method}:${urlPath} no found`);
+        this.logger.info(`Route for ${originalReq.method}:${urlPath} not found`);
         throw new OpenApiBuiltInError(OpenApiErrorCode.NotFound);
       }
 
@@ -234,29 +203,112 @@ export class OpenApi<
       }
       this.logger.info(`Response: '${status}'`, response.body);
       this.logger.error('Error during request openAPI route handling', e);
-      return {status: Number(response.code), body: response.body};
+      return {status: Number(status), body: response.body};
     }
   }
 
-  public static createConfig<
+  public static create(): OpenApi<
+    typeof OpenApiSampleRouteType,
+    typeof OpenApiErrorCode,
+    OpenApiConfig<typeof OpenApiSampleRouteType, typeof OpenApiErrorCode>
+  >;
+
+  public static create<TRouteTypes extends Record<string, string>, TErrorCodes extends Record<string, string>, >(
+    routeEnum: TRouteTypes,
+    errorEnum: TErrorCodes,
+  ): OpenApi<TRouteTypes, TErrorCodes, OpenApiConfig<TRouteTypes, TErrorCodes>>
+
+  public static create<
     TRouteTypes extends Record<string, string>,
     TErrorCodes extends Record<string, string>,
     TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes]>,
     TErrorMap extends OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>,
-    TSpec extends OpenApiNarrowConfig<TRouteTypes, TErrorCodes, TRouteConfigMap, TErrorMap>
+    TConfig extends OpenApiNarrowConfig<TRouteTypes, TErrorCodes, TRouteConfigMap, TErrorMap>
   >(
     routeEnum: TRouteTypes,
     errorEnum: TErrorCodes,
     errors: TErrorMap,
     routes: TRouteConfigMap,
-    spec: Omit<TSpec, 'errors'|'routes'>
-  ): TSpec {
-    const result: TSpec = {
-      ...spec,
-      routes,
-      errors: errors,
+    spec: Omit<TConfig, 'errors'|'routes'>
+  ): OpenApi<TRouteTypes, TErrorCodes, OpenApiConfig<TRouteTypes, TErrorCodes>>
+
+  public static create<
+    TRouteTypes extends Record<string, string>,
+    TErrorCodes extends Record<string, string>,
+    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes]>,
+    TErrorMap extends OpenApiErrorConfigMap<TErrorCodes[keyof TErrorCodes]>,
+    TConfig extends OpenApiNarrowConfig<TRouteTypes, TErrorCodes, TRouteConfigMap, TErrorMap>
+  >(
+    routeEnum?: TRouteTypes,
+    errorEnum?: TErrorCodes,
+    errors?: TErrorMap,
+    routes?: TRouteConfigMap,
+    spec?: Omit<TConfig, 'errors'|'routes'>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): OpenApi<any, any, any> {
+    const defaultErrors: OpenApiErrorConfigMap<OpenApiErrorCode> = {
+      [OpenApiErrorCode.UnknownError]: {
+        status: '500',
+        description: 'Unknown Api Error',
+        validator: z.object({
+          error: z.literal(OpenApiErrorCode.UnknownError),
+        }),
+      },
+      [OpenApiErrorCode.ValidationFailed]: {
+        status: '422',
+        description: '',
+        validator: z.object({
+          error: z.literal(OpenApiErrorCode.ValidationFailed),
+        }),
+      },
+      [OpenApiErrorCode.NotFound]: {
+        status: '404',
+        description: 'Route Not Found',
+        validator: z.object({
+          error: z.literal(OpenApiErrorCode.NotFound),
+        }),
+      },
+    };
+    type DefaultConf = OpenApiNarrowConfig<
+      typeof OpenApiSampleRouteType,
+      typeof OpenApiErrorCode,
+      RouteConfigMap<OpenApiSampleRouteType, OpenApiErrorCode>,
+      OpenApiErrorConfigMap<OpenApiErrorCode>
+    >
+    const defaultConf: Omit<DefaultConf, 'errors'| 'routes'> = {
+      handleError: () => {
+        return {code: OpenApiErrorCode.UnknownError, body: {error: OpenApiErrorCode.UnknownError}};
+      },
+      defaultErrorResponse: {
+        error: OpenApiErrorCode.UnknownError,
+      },
+    };
+    const createDefaultRoutes = (routeTypes: Record<string, string>, errorTypes: Record<string, string>) => {
+      const x: RouteConfigMap<string, string> = {
+      };
+      const allErrorsEnabled = Object.keys(errorTypes).reduce((acc, val) => ({...acc, [val]: true}), {});
+      for (const type of Object.values(routeTypes)) {
+        x[type] = {
+          authorization: false,
+          context: async () => ({}),
+          errors: {
+            ...allErrorsEnabled,
+          },
+        };
+      }
+      return x;
+    };
+    const routeTypes = routeEnum ?? OpenApiSampleRouteType;
+    const errorTypes = errorEnum && routeEnum ? errorEnum : OpenApiErrorCode;
+    const errorConfig = errorEnum && routeEnum && errors ? errors : defaultErrors;
+    const routeConfig = errorEnum && routeEnum && errors && routes ? routes : createDefaultRoutes(routeTypes, errorTypes);
+    const conf = errorEnum && routeEnum && errors && routes && spec ? spec : defaultConf;
+    const config = {
+      ...conf,
+      routes: routeConfig,
+      errors: errorConfig,
+    };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-    return result;
+    return new OpenApi(routeTypes as any, errorTypes as any, config as any);
   }
 }

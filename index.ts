@@ -11,5 +11,4 @@ export {OpenApiMethods} from './enums/OpenApiMethods';
 export {OpenApiErrorCode} from './enums/OpenApiErrorCode';
 export {OpenApiError} from './types/errors/OpenApiError';
 export {OpenApi} from './OpenApi';
-export type {OpenApiRoute} from './types/OpenApiRoute';
 

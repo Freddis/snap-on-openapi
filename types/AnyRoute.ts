@@ -1,7 +1,7 @@
 import {ZodObject, ZodRawShape, ZodFirstPartySchemaTypes} from 'zod';
 import {BaseOpenApiRoute} from './BaseOpenApiRoute';
 
-export type OpenApiRoute<TRouteType extends string> =
+export type AnyRoute<TRouteType extends string> =
 BaseOpenApiRoute<
     TRouteType,
     object,

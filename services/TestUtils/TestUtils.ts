@@ -6,7 +6,7 @@ import {TestErrors} from './types/TestErrors';
 export class TestUtils {
 
   static createOpenApi(routes: Record<string, string> = TestRoute, errors: Record<string, string> = TestErrors) {
-    const config = OpenApi.createConfig(routes, errors,
+    const api = OpenApi.create(routes, errors,
       {
         ApiError: {
           description: 'An error occurred while processing the request.',
@@ -32,7 +32,6 @@ export class TestUtils {
         },
         skipDescriptionsCheck: true,
       });
-    const api = new OpenApi(routes, errors, config);
     return api;
   }
 

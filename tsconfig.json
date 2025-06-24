@@ -12,6 +12,7 @@
     "moduleResolution": "bundler",
     "target": "ES2022",
     "allowJs": false,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": true,
     "strictPropertyInitialization": true,

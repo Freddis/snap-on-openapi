@@ -1,6 +1,5 @@
 import {LogLevel} from './types/LogLevel';
 
-
 export class Logger {
   private invoker: string;
   protected static logLevel: LogLevel = LogLevel.all;

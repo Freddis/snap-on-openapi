@@ -180,6 +180,10 @@ export default tseslint.config(
   ...x,
   ignores: [
     'dist/**',
+    'temp/**',
+    'html/**',
+    'openapi-client/**',
+    'dist/**',
   ],
   languageOptions: {
     parser: tsParser,
