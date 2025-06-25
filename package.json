@@ -1,7 +1,7 @@
 {
   "name": "strap-on-openapi",
   "author": "Alex Sarychev",
-  "version": "1.0.26",
+  "version": "1.0.28",
   "description": "Swiftly build type-checked OpenAPI applications with Zod and TypeScript",
   "type": "module",
   "license": "ISC",
@@ -17,6 +17,7 @@
   "scripts": {
     "build": "tsc && tsc-alias && cp -R ./assets ./dist",
     "test": "vitest --run",
+    "test:typecheck": "tsc  -p tsconfig.test.json",
     "test:coverage": "npm run test -- --coverage && rm -R ./html/coverage/html && mv ./html/coverage/spa ./html/coverage/html && vite preview --outDir html --open",
     "lint": "eslint . --fix"
   },
@@ -28,6 +29,7 @@
     "zod-openapi": "^4.2.4"
   },
   "devDependencies": {
+    "@total-typescript/ts-reset": "^0.6.1",
     "@types/node": "^24.0.3",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",

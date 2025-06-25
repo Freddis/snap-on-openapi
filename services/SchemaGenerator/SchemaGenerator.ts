@@ -7,23 +7,30 @@ import {Config} from '../../types/config/Config';
 import {ErrorConfig} from '../../types/config/ErrorConfig';
 import {Methods} from '../../enums/Methods';
 import {Logger} from '../Logger/Logger';
+import {Server} from '../../types/config/Server';
+import {Info} from '../../types/config/Info';
 
 export class SchemaGenerator<
   TRouteTypes extends Record<string, string>,
   TConfig extends Config<TRouteTypes, Record<string, string>>
 > {
   protected logger: Logger;
-  protected basePath: string = '';
+  protected info: Info;
   protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[];
+  protected servers: Server[];
   protected routeSpec: TConfig;
   constructor(
     invoker: string,
+    info: Info,
     spec: TConfig,
-    routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]
+    routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[],
+    servers: Server[],
   ) {
     this.logger = new Logger(SchemaGenerator.name, invoker);
     this.routes = routes;
     this.routeSpec = spec;
+    this.servers = servers;
+    this.info = info;
   }
 
   public getYaml(): string {
@@ -41,10 +48,7 @@ export class SchemaGenerator<
   protected createDocument(): ReturnType<typeof createDocument> {
     const openApi: ZodOpenApiObject = {
       openapi: '3.1.0',
-      info: {
-        title: 'My API',
-        version: '1.0.0',
-      },
+      info: this.info,
       components: {
         securitySchemes: {
           bearerHttpAuthentication: {
@@ -57,21 +61,11 @@ export class SchemaGenerator<
         },
       },
       paths: {},
-      servers: [
-        {
-          url: 'http://localhost:3000/api/v1' + this.basePath,
-          description: 'Local',
-        },
-        {
-          url: 'https://discipline.alex-sarychev.com/api/v1' + this.basePath,
-          description: 'Production',
-        },
-      ],
+      servers: this.servers,
     };
     const paths: ZodOpenApiPathsObject = {};
     for (const route of this.routes) {
       const operation = this.createOperation(route);
-
       const existingPath = paths[route.path] ?? {};
       paths[route.path] = {
         ...existingPath,

@@ -1,8 +1,7 @@
 import {OpenApi} from '../../OpenApi';
 import {Config} from '../../types/config/Config';
+import {RoutePath} from '../../types/RoutePath';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
-import {TanStackApiRoute} from './types/TanStackAPIRoute';
-import {TanstackStartRoutingFunc} from './types/TanstackStartRoutingFunc';
 
 export class TanstackStartWrapper<
  TRouteTypes extends Record<string, string>,
@@ -17,37 +16,8 @@ export class TanstackStartWrapper<
     this.developmentUtils = new DevelopmentUtils();
   }
 
-  createStoplightRoute<T extends string>(schemaRoutePath: string, path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
-    const processor = async () => {
-      const body = this.developmentUtils.getStoplightHtml(schemaRoutePath);
-      const res = new Response(body, {
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      });
-      return res;
-    };
-    return router(path)({
-      GET: processor,
-    });
-  }
 
-  createSwaggerRoute<T extends string>(schemaRoutePath: string, path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
-    const processor = async () => {
-      const body = this.developmentUtils.getSwaggerHTML(schemaRoutePath);
-      const res = new Response(body, {
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      });
-      return res;
-    };
-    return router(path)({
-      GET: processor,
-    });
-  }
-
-  createSchemaRoute<T extends string>(path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
+  createShemaMethods() {
     const processor = async () => {
       const body = this.service.schemaGenerator.getYaml();
       const res = new Response(body, {
@@ -57,12 +27,45 @@ export class TanstackStartWrapper<
       });
       return res;
     };
-    return router(path)({
+    return {
       GET: processor,
-    });
+    };
   }
 
-  createOpenApiRootRoute<T extends string>(path: T, router: TanstackStartRoutingFunc<T>): TanStackApiRoute<T> {
+  createStoplightMethods(schemaRoutePath: RoutePath) {
+    const processor = async () => {
+      const body = this.developmentUtils.getStoplightHtml(schemaRoutePath);
+      const res = new Response(body, {
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      });
+      return res;
+    };
+    return {
+      GET: processor,
+    };
+  }
+
+  createSwaggerMethods(schemaRoutePath: RoutePath) {
+    const processor = async () => {
+      const body = this.developmentUtils.getSwaggerHTML(schemaRoutePath);
+      const res = new Response(body, {
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      });
+      return res;
+    };
+    return {
+      GET: processor,
+    };
+  }
+
+  getOpenApiRootMethods(path: RoutePath) {
+    if (path !== this.service.getBasePath()) {
+      throw new Error(`OpenAPI root route can only be used for the base path: ${this.service.getBasePath()}.`);
+    }
     const processor = async (ctx: {request: Request}) => {
       const response = await this.service.processRootRoute(path, ctx.request);
       const res = new Response(JSON.stringify(response.body), {
@@ -70,13 +73,12 @@ export class TanstackStartWrapper<
       });
       return res;
     };
-
-    return router(path)({
+    return {
       GET: processor,
       POST: processor,
       PATCH: processor,
       PUT: processor,
       DELETE: processor,
-    });
+    };
   }
 }

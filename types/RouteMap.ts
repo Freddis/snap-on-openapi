@@ -1,3 +1,4 @@
-import {RouteMapRow} from './RouteMapRow';
+import {AnyRoute} from './AnyRoute';
+import {RoutePath} from './RoutePath';
 
-export type RouteMap<TRouteType extends string> = RouteMapRow<TRouteType>[]
+export type RouteMap<TRouteType extends string> = Record<RoutePath, AnyRoute<TRouteType>[]>

@@ -2,8 +2,17 @@ import z from 'zod';
 import {OpenApi} from '../../OpenApi';
 import {TestRoute} from './types/TestRoute';
 import {TestErrors} from './types/TestErrors';
+import {Methods} from '../../enums/Methods';
+import {RoutePath} from '../../types/RoutePath';
 
 export class TestUtils {
+
+  static createRequest(route: RoutePath, method: Methods): Request {
+    const request = new Request(`http://localhost${route}`, {
+      method: method,
+    });
+    return request;
+  }
 
   static createOpenApi(routes: Record<string, string> = TestRoute, errors: Record<string, string> = TestErrors) {
     const api = OpenApi.create(routes, errors,

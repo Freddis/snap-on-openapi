@@ -43,7 +43,8 @@ export class ExpressWrapper<
     expressApp.get(route, handler);
   }
 
-  public createOpenApiRootRoute(route: string, expressApp: ExpressApp): void {
+  public createOpenApiRootRoute(expressApp: ExpressApp): void {
+    const route = this.service.getBasePath();
     const handler: ExpressHandler = async (req, res) => {
       const emptyHeaders: Record<string, string> = {};
       const headers = Object.entries(req.headers).reduce((acc, val) => ({
@@ -60,13 +61,14 @@ export class ExpressWrapper<
         headers: headers,
         method: req.method,
       });
-      const result = await this.service.processRootRoute('/', openApiRequest);
+      const result = await this.service.processRootRoute(route, openApiRequest);
       res.status(result.status).header('Content-Type', 'application/json').json(result.body);
     };
-    expressApp.get(route, handler);
-    expressApp.post(route, handler);
-    expressApp.patch(route, handler);
-    expressApp.delete(route, handler);
-    expressApp.put(route, handler);
+    const regex = new RegExp(`${route}.*`);
+    expressApp.get(regex, handler);
+    expressApp.post(regex, handler);
+    expressApp.patch(regex, handler);
+    expressApp.delete(regex, handler);
+    expressApp.put(regex, handler);
   }
 }

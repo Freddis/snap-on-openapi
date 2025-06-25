@@ -23,6 +23,9 @@ import z from 'zod';
 import {TanstackStartWrapper} from './services/TanstackStartWrapper/TanstackStartWrapper';
 import {Wrappers} from './types/Wrappers';
 import {ExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
+import {Server} from './types/config/Server';
+import {RoutePath} from './types/RoutePath';
+import {Info} from './types/config/Info';
 
 export class OpenApi<
   TRouteTypes extends Record<string, string>,
@@ -36,10 +39,11 @@ export class OpenApi<
   public readonly wrappers: Wrappers<TRouteTypes, TErrorCodes, TConfig>;
   protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
   protected logger: Logger;
-  protected basePath = '';
+  protected basePath: RoutePath = '/api';
   protected developmentUtils: DevelopmentUtils;
   protected spec: TConfig;
   protected descriptionChecker: DescriptionChecker;
+  protected servers: Server[] = [];
 
   protected constructor(a: TRouteTypes, b: TErrorCodes, spec: TConfig) {
     this.spec = spec;
@@ -47,15 +51,30 @@ export class OpenApi<
     this.descriptionChecker = new DescriptionChecker();
     this.developmentUtils = new DevelopmentUtils();
     this.factory = new RoutingFactory<TRouteTypes, TConfig>(spec);
-    this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), this.spec, this.routes);
+    const info: Info = {
+      title: 'My Api',
+      version: '3.1.0',
+    };
+    this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), info, this.spec, this.routes, this.servers);
     this.wrappers = {
       tanstackStart: new TanstackStartWrapper(this),
       express: new ExpressWrapper(this),
     };
+    this.servers.push({
+      description: 'Local',
+      url: this.basePath,
+    });
   }
 
-  public addRoute(pathExtension: string, routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]) {
-    const newRoutes = routes.map((x) => ({...x, path: pathExtension + x.path}));
+  public getBasePath(): RoutePath {
+    return this.basePath;
+  }
+  public getServers(): Server[] {
+    return this.servers;
+  }
+
+  public addRoute(pathExtension: RoutePath, routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]) {
+    const newRoutes = routes.map((x) => ({...x, path: `${pathExtension}${x.path}` as RoutePath}));
     if (!this.spec.skipDescriptionsCheck) {
       this.descriptionChecker.checkRoutes(newRoutes);
     }
@@ -63,11 +82,13 @@ export class OpenApi<
   }
 
   public addRouteMap(routeMap: RouteMap<TRouteTypes[keyof TRouteTypes]>) {
-    for (const row of routeMap) {
-      this.addRoute(row.path, row.routes);
+    for (const [path, routes] of Object.entries(routeMap)) {
+      this.addRoute(path, routes);
     }
   }
-
+  public addServer(url: string, description:string,) {
+    this.servers.push({description, url});
+  }
   protected getRouteForPath(path: string, method: string): AnyRoute<TRouteTypes[keyof TRouteTypes]> | null {
     const fittingRoutes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
     outer:
@@ -123,7 +144,7 @@ export class OpenApi<
         }
       }
 
-      let body = {};
+      let body: unknown = {};
       try {
         body = await originalReq.json();
       } catch {
@@ -237,7 +258,7 @@ export class OpenApi<
     errors: TErrorMap,
     routes: TRouteConfigMap,
     spec: Omit<TConfig, 'errors'|'routes'>
-  ): OpenApi<TRouteTypes, TErrorCodes, Config<TRouteTypes, TErrorCodes>>
+  ): OpenApi<TRouteTypes, TErrorCodes, TConfig>
 
   public static create<
     TRouteTypes extends Record<string, string>,

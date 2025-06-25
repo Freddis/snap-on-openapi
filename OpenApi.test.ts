@@ -11,7 +11,7 @@ describe('OpenApi', () => {
     const route = api.factory.createRoute({
       type: TestRoute.Public,
       method: Methods.GET,
-      path: 'test',
+      path: '/test',
       description: '',
       validators: {
         response: z.string(),
@@ -20,9 +20,8 @@ describe('OpenApi', () => {
         return '1';
       },
     });
-    api.addRoute('', [route]);
-    const req: Request = new Request('http://localhost/api/test', {
-    });
+    api.addRoute('/', [route]);
+    const req: Request = new Request('http://localhost/api/test', {});
     const response = await api.processRootRoute('/api', req);
     expect(response.status).toBe(200);
     expect(response.body).toBe('1');
@@ -33,33 +32,37 @@ describe('OpenApi', () => {
       User = 'User',
     }
     enum ErrorType {
-      Unknown = 'Unknown'
+      Unknown = 'Unknown',
     }
 
     test('Can be created without config', async () => {
       const defaultApi = OpenApi.create();
-      const customApi = OpenApi.create(RouteType, ErrorType, {
-        [ErrorType.Unknown]: {
-          status: '200',
-          description: '',
-          validator: z.object({custom: z.string()}),
+      const customApi = OpenApi.create(
+        RouteType,
+        ErrorType,
+        {
+          [ErrorType.Unknown]: {
+            status: '200',
+            description: '',
+            validator: z.object({custom: z.string()}),
+          },
         },
-      }, {
-        [RouteType.User]: {
-          authorization: true,
-          context: async () => ({}),
-          errors: {},
+        {
+          [RouteType.User]: {
+            authorization: true,
+            context: async () => ({}),
+            errors: {},
+          },
         },
-      },
         {
           handleError: () => ({code: ErrorType.Unknown, body: {}}),
           defaultErrorResponse: {
             error: 'MyCustomError',
           },
-        });
+        }
+      );
 
-      const req: Request = new Request('http://localhost/api/test', {
-      });
+      const req: Request = new Request('http://localhost/api/test', {});
       const defaultResponse = await defaultApi.processRootRoute('/ds', req);
       const customResponse = await customApi.processRootRoute('/ds', req);
       expect(defaultResponse.body).toEqual({
@@ -77,7 +80,7 @@ describe('OpenApi', () => {
         customApi.factory.createRoute({
           type: RouteType.User,
           method: Methods.GET,
-          path: '',
+          path: '/',
           description: 'Default Api Route',
           validators: {
             response: z.string().openapi({description: 'Response string'}),
@@ -85,12 +88,59 @@ describe('OpenApi', () => {
           handler: async () => 'Hello',
         }),
       ]);
-      const req = new Request('http://localhost',);
+      const req = new Request('http://localhost');
       const res = await customApi.processRootRoute('/', req);
       expect(res.status).toBe(200);
       expect(res.body).toBe('Hello');
     });
 
-  });
+    test('Context is working', async () => {
+      const api = OpenApi.create(
+        RouteType,
+        ErrorType,
+        {
+          [ErrorType.Unknown]: {
+            status: '500',
+            validator: z.object({}),
+            description: 'Default error',
+          },
+        },
+        {
+          [RouteType.User]: {
+            authorization: false,
+            context: async () => {
+              return {currentPeremission: 'user'};
+            },
+            errors: {
+              Unknown: true,
+            },
+          },
+        },
+        {
+          defaultErrorResponse: {},
+          handleError: () => ({code: ErrorType.Unknown, body: {}}),
+        }
+      );
+      const route = api.factory.createRoute({
+        type: RouteType.User,
+        method: Methods.GET,
+        path: '/',
+        description: 'My fantastic route',
+        validators: {
+          response: z.string().openapi({description: 'response'}),
+        },
+        handler: async (context) => {
+          return context.currentPeremission;
+        },
+      });
+      api.addRoute('/', [route]);
 
+      const req = TestUtils.createRequest('/', Methods.GET);
+      const res = await api.processRootRoute('/', req);
+
+      expect(res.status).toBe(200);
+
+    });
+
+  });
 });

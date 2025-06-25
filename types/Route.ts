@@ -1,5 +1,6 @@
 import {z, ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
 import {Methods} from '../enums/Methods';
+import {RoutePath} from './RoutePath';
 
 export interface Route<
   TType extends string,
@@ -12,7 +13,7 @@ export interface Route<
 > {
   type: TType,
   method: TMethod,
-  path: string,
+  path: RoutePath,
   description: string,
   validators: {
     query?: TQueryValidator
