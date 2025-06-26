@@ -22,7 +22,7 @@ describe('OpenApi', () => {
     });
     api.addRoute('/', [route]);
     const req: Request = new Request('http://localhost/api/test', {});
-    const response = await api.processRootRoute('/api', req);
+    const response = await api.processRootRoute(req);
     expect(response.status).toBe(200);
     expect(response.body).toBe('1');
   });
@@ -59,12 +59,14 @@ describe('OpenApi', () => {
           defaultErrorResponse: {
             error: 'MyCustomError',
           },
+          apiName: 'test',
+          basePath: '/api',
         }
       );
 
       const req: Request = new Request('http://localhost/api/test', {});
-      const defaultResponse = await defaultApi.processRootRoute('/ds', req);
-      const customResponse = await customApi.processRootRoute('/ds', req);
+      const defaultResponse = await defaultApi.processRootRoute(req);
+      const customResponse = await customApi.processRootRoute(req);
       expect(defaultResponse.body).toEqual({
         error: 'UnknownError',
       });
@@ -89,7 +91,7 @@ describe('OpenApi', () => {
         }),
       ]);
       const req = new Request('http://localhost');
-      const res = await customApi.processRootRoute('/', req);
+      const res = await customApi.processRootRoute(req);
       expect(res.status).toBe(200);
       expect(res.body).toBe('Hello');
     });
@@ -119,6 +121,7 @@ describe('OpenApi', () => {
         {
           defaultErrorResponse: {},
           handleError: () => ({code: ErrorType.Unknown, body: {}}),
+          basePath: '/api',
         }
       );
       const route = api.factory.createRoute({
@@ -135,8 +138,8 @@ describe('OpenApi', () => {
       });
       api.addRoute('/', [route]);
 
-      const req = TestUtils.createRequest('/', Methods.GET);
-      const res = await api.processRootRoute('/', req);
+      const req = TestUtils.createRequest('/api', Methods.GET);
+      const res = await api.processRootRoute(req);
 
       expect(res.status).toBe(200);
 

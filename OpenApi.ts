@@ -39,7 +39,7 @@ export class OpenApi<
   public readonly wrappers: Wrappers<TRouteTypes, TErrorCodes, TConfig>;
   protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
   protected logger: Logger;
-  protected basePath: RoutePath = '/api';
+  protected basePath: RoutePath;
   protected developmentUtils: DevelopmentUtils;
   protected spec: TConfig;
   protected descriptionChecker: DescriptionChecker;
@@ -51,8 +51,9 @@ export class OpenApi<
     this.descriptionChecker = new DescriptionChecker();
     this.developmentUtils = new DevelopmentUtils();
     this.factory = new RoutingFactory<TRouteTypes, TConfig>(spec);
+    this.basePath = spec.basePath;
     const info: Info = {
-      title: 'My Api',
+      title: spec.apiName ?? 'My API',
       version: '3.1.0',
     };
     this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), info, this.spec, this.routes, this.servers);
@@ -64,6 +65,8 @@ export class OpenApi<
       description: 'Local',
       url: this.basePath,
     });
+    const servers = this.spec.servers ?? [];
+    this.servers.push(...servers);
   }
 
   public getBasePath(): RoutePath {
@@ -116,12 +119,11 @@ export class OpenApi<
   }
 
   async processRootRoute(
-    basePath: string,
     originalReq: Request
   ): Promise<{status: number; body: unknown}> {
     try {
       const url = new URL(originalReq.url);
-      const urlPath = url.pathname.replace(basePath, '');
+      const urlPath = url.pathname.replace(this.getBasePath(), '');
       const route = this.getRouteForPath(urlPath, originalReq.method);
       if (!route) {
         this.logger.info(`Route for ${originalReq.method}:${urlPath} not found`);
@@ -310,6 +312,7 @@ export class OpenApi<
       defaultErrorResponse: {
         error: ErrorCode.UnknownError,
       },
+      basePath: '/api',
     };
     const createDefaultRoutes = (routeTypes: Record<string, string>, errorTypes: Record<string, string>) => {
       const x: RouteConfigMap<string, string> = {

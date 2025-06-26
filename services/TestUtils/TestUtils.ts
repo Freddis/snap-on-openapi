@@ -40,6 +40,7 @@ export class TestUtils {
           throw new Error('Function not implemented.');
         },
         skipDescriptionsCheck: true,
+        basePath: '/api',
       });
     return api;
   }

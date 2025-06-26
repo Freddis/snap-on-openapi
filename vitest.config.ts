@@ -11,6 +11,8 @@ export default defineConfig({
         'vitest',
         'index.ts',
         'eslint.config.mjs',
+        'overrides.d.ts',
+        'reset.d.ts',
       ],
       reportsDirectory: 'html/coverage',
       reporter: [

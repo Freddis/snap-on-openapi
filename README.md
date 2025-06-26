@@ -9,6 +9,8 @@ Bring a fully fledged typechecked api to your app in just 5 minutes.
 - Not opinionated. It solves only the problems it supposed to
 - Easy to test
 - 2 documentation generators included (Swagger, Stoplight)
+- Typescript client generator included. 
+- But since you got the OpenAPI you can generate clients for any language you want.
 
 ## Installation
 
@@ -37,7 +39,7 @@ And it's done. No need for any initial configuration, you already will have swag
 Ofcourse, since we haven't added routes, any attempt to send request to ```/api/something``` will result in one of built-in errors, but the API is surely works already.
 
 ### Tanstack Start
-Due to a little bit opinionated nature of Tanstack routing, we need more files: 
+Due to a bit opinionated nature of Tanstack routing, we need more files: 
 
 Root Route:
 ``` typescript
@@ -79,6 +81,51 @@ import {openapi} from '../backend/utils/openApiInstance';
 const methods = openapi.wrappers.tanstackStart.createStoplightMethods('/schema');
 export const ServerRoute = createServerFileRoute('/stoplight').methods(methods);
 ```
+
+### Custom
+You don't have to use a wrapper to strap OpenApi onto your framework. It's actually fairly simple to mount it on any framework: OpenAPI simply takes Request object and returns this object:
+```typescript
+{
+  status: number,
+  body: object
+}
+```
+Here's the code for Express wrapper:
+```typescript
+public createOpenApiRootRoute(expressApp: ExpressApp): void {
+    const route = this.service.getBasePath();
+    // Handler simply creates a basic Request object from Express Request
+    // and passes it to OpenAPI instance (this.service)
+    const handler: ExpressHandler = async (req, res) => {
+      const emptyHeaders: Record<string, string> = {};
+      // Correcting the type for headers a little bit
+      const headers = Object.entries(req.headers).reduce((acc, val) => ({
+        ...acc,
+        ...(typeof val[1] === 'string' ? {[val[0]]: val[1]} : {}),
+      }), emptyHeaders);
+      const url = format({
+        protocol: req.protocol,
+        host: req.host,
+        pathname: req.originalUrl,
+      });
+      const openApiRequest = new Request(url, {
+        body: req.body,
+        headers: headers,
+        method: req.method,
+      });
+      const result = await this.service.processRootRoute(route, openApiRequest);
+      res.status(result.status).header('Content-Type', 'application/json').json(result.body);
+    };
+    // Assigning the same handler for every HTTP method matching our API base path
+    const regex = new RegExp(`${route}.*`);
+    expressApp.get(regex, handler);
+    expressApp.post(regex, handler);
+    expressApp.patch(regex, handler);
+    expressApp.delete(regex, handler);
+    expressApp.put(regex, handler);
+  }
+```
+As you can see, it isn't a rocket science to strap it onto any framework.
 
 ## Adding Routes
 
@@ -161,8 +208,31 @@ Now the new route should appear on your Swagger or Stoplight documentation and y
     "updatedAt": "2025-06-25T22:32:37.698Z",
   }
 }]
-
 ```
+
+The code sample above is a little bit overloaded with information. In a developed application routes look much prettier than that. Here's an example from a real project:
+
+```typescript
+export const upsertExercises = openApiInstance.factory.createRoute({
+  method: OpenApiMethods.PUT,
+  type: ApiRouteType.User,
+  description: 'Updates or inserts exercise in users personal library',
+  path: '/',
+  validators: {
+    body: z.object({
+      items: exerciseUpsertDtoValidator.array(),
+    }),
+    response: z.object({
+      items: exerciseValidator.array(),
+    }),
+  },
+  handler: async (ctx) => {
+    const result = await ctx.services.models.exercise.upsert(ctx.viewer.id, ctx.params.body.items);
+    return {items: result};
+  },
+});
+```
+And you can always write your own wrapper function to make it even less verbal if you need to.
 
 ## Default Route Fields
 

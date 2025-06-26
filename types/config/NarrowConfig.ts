@@ -1,6 +1,8 @@
+import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {ErrorResponse} from './ErrorResponse';
 import {RouteConfigMap} from './RouteConfigMap';
+import {Server} from './Server';
 
 export type NarrowConfig<
 TRouteTypes extends Record<string, string>,
@@ -9,6 +11,7 @@ TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCod
 TErrorConfigMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
 >
  = {
+  basePath: RoutePath
   routes: TRouteConfigMap
   errors: TErrorConfigMap
   handleError: (e: unknown) => {
@@ -17,4 +20,7 @@ TErrorConfigMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
   }
   defaultErrorResponse: object
   skipDescriptionsCheck?: boolean;
+  servers?: Server[];
+  apiName?: string,
+
 }

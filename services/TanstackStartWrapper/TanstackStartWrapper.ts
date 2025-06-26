@@ -62,12 +62,9 @@ export class TanstackStartWrapper<
     };
   }
 
-  getOpenApiRootMethods(path: RoutePath) {
-    if (path !== this.service.getBasePath()) {
-      throw new Error(`OpenAPI root route can only be used for the base path: ${this.service.getBasePath()}.`);
-    }
+  getOpenApiRootMethods() {
     const processor = async (ctx: {request: Request}) => {
-      const response = await this.service.processRootRoute(path, ctx.request);
+      const response = await this.service.processRootRoute(ctx.request);
       const res = new Response(JSON.stringify(response.body), {
         status: response.status ?? 200,
       });
