@@ -5,4 +5,4 @@ export interface Info extends ISpecificationExtension {
   description?: string;
   termsOfService?: string;
   version: string;
-};
+}

@@ -1,7 +1,7 @@
 {
   "name": "strap-on-openapi",
   "author": "Alex Sarychev",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "Swiftly build type-checked OpenAPI applications with Zod and TypeScript",
   "type": "module",
   "license": "ISC",

@@ -26,6 +26,7 @@ import {ExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
 import {Server} from './types/config/Server';
 import {RoutePath} from './types/RoutePath';
 import {Info} from './types/config/Info';
+import {RouteExtraPropsMap} from './types/RouteExtraPropsMap';
 
 export class OpenApi<
   TRouteTypes extends Record<string, string>,
@@ -251,27 +252,31 @@ export class OpenApi<
   public static create<
     TRouteTypes extends Record<string, string>,
     TErrorCodes extends Record<string, string>,
-    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes]>,
+    TRouteExtraParamsMap extends RouteExtraPropsMap<TRouteTypes[keyof TRouteTypes]>,
+    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes], TRouteExtraParamsMap>,
     TErrorMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>,
-    TConfig extends NarrowConfig<TRouteTypes, TErrorCodes, TRouteConfigMap, TErrorMap>
+    TConfig extends NarrowConfig<TRouteTypes, TErrorCodes, TRouteExtraParamsMap, TRouteConfigMap, TErrorMap>
   >(
     routeEnum: TRouteTypes,
     errorEnum: TErrorCodes,
     errors: TErrorMap,
+    routeExtraParams: TRouteExtraParamsMap,
     routes: TRouteConfigMap,
-    spec: Omit<TConfig, 'errors'|'routes'>
-  ): OpenApi<TRouteTypes, TErrorCodes, TConfig>
+    spec: Omit<TConfig, 'errors'|'routes'|'routeParams'>
+  ): OpenApi<TRouteTypes, TErrorCodes, NarrowConfig<TRouteTypes, TErrorCodes, TRouteExtraParamsMap, TRouteConfigMap, TErrorMap>>
 
   public static create<
     TRouteTypes extends Record<string, string>,
     TErrorCodes extends Record<string, string>,
-    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes]>,
+    TRouteExtraParamsMap extends RouteExtraPropsMap<TRouteTypes[keyof TRouteTypes]>,
+    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes], TRouteExtraParamsMap>,
     TErrorMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>,
-    TConfig extends NarrowConfig<TRouteTypes, TErrorCodes, TRouteConfigMap, TErrorMap>
+    TConfig extends NarrowConfig<TRouteTypes, TErrorCodes, TRouteExtraParamsMap, TRouteConfigMap, TErrorMap>
   >(
     routeEnum?: TRouteTypes,
     errorEnum?: TErrorCodes,
     errors?: TErrorMap,
+    routeExtraParams?: TRouteExtraParamsMap,
     routes?: TRouteConfigMap,
     spec?: Omit<TConfig, 'errors'|'routes'>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -302,7 +307,8 @@ export class OpenApi<
     type DefaultConf = NarrowConfig<
       typeof SampleRouteType,
       typeof ErrorCode,
-      RouteConfigMap<SampleRouteType, ErrorCode>,
+      RouteExtraPropsMap<SampleRouteType>,
+      RouteConfigMap<SampleRouteType, ErrorCode, RouteExtraPropsMap<SampleRouteType>>,
       ErrorConfigMap<ErrorCode>
     >
     const defaultConf: Omit<DefaultConf, 'errors'| 'routes'> = {
@@ -313,9 +319,12 @@ export class OpenApi<
         error: ErrorCode.UnknownError,
       },
       basePath: '/api',
+      routeParams: {
+        [SampleRouteType.Public]: z.object({}),
+      },
     };
     const createDefaultRoutes = (routeTypes: Record<string, string>, errorTypes: Record<string, string>) => {
-      const x: RouteConfigMap<string, string> = {
+      const x: RouteConfigMap<string, string, RouteExtraPropsMap<string>> = {
       };
       const allErrorsEnabled = Object.keys(errorTypes).reduce((acc, val) => ({...acc, [val]: true}), {});
       for (const type of Object.values(routeTypes)) {

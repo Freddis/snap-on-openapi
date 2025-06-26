@@ -2,6 +2,7 @@ import {ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
 import {Methods} from '../../enums/Methods';
 import {Route} from '../../types/Route';
 import {Config} from '../../types/config/Config';
+import {RouteExtraProps} from '../../types/config/RouteExtraProps';
 
 export class RoutingFactory<
  TRouteTypes extends Record<string, string>,
@@ -29,7 +30,7 @@ export class RoutingFactory<
         TQueryValidator,
         TBodyValidator,
         TMethod
-      >// & TPropsMap[TRouteType]
+      > & RouteExtraProps<TConfig['routeParams'][TRouteType]>
     ): Route<
         TRouteTypes[keyof TRouteTypes],
         Awaited<ReturnType<TConfig['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
@@ -48,6 +49,7 @@ export class RoutingFactory<
       TBodyValidator,
       TMethod
     > = {
+      ...params,
       method: params.method,
       type: params.type,
       path: params.path,

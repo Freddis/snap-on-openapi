@@ -4,6 +4,7 @@ import {Methods} from './enums/Methods';
 import z from 'zod';
 import {TestRoute} from './services/TestUtils/types/TestRoute';
 import {OpenApi} from './OpenApi';
+import {ErrorConfigMap} from './types/config/ErrorConfigMap';
 
 describe('OpenApi', () => {
   test('Happy Path', async () => {
@@ -34,6 +35,16 @@ describe('OpenApi', () => {
     enum ErrorType {
       Unknown = 'Unknown',
     }
+    const errorConfigMap = {
+      [ErrorType.Unknown]: {
+        status: '500',
+        validator: z.object({}),
+        description: 'Default error',
+      },
+    } as const satisfies ErrorConfigMap<ErrorType>;
+    const routeExtraPropsMap = {
+      [RouteType.User]: z.object({}),
+    } as const satisfies Record<RouteType, z.ZodObject<z.ZodRawShape>>;
 
     test('Can be created without config', async () => {
       const defaultApi = OpenApi.create();
@@ -42,11 +53,12 @@ describe('OpenApi', () => {
         ErrorType,
         {
           [ErrorType.Unknown]: {
-            status: '200',
+            status: '502',
             description: '',
             validator: z.object({custom: z.string()}),
           },
         },
+        routeExtraPropsMap,
         {
           [RouteType.User]: {
             authorization: true,
@@ -70,7 +82,6 @@ describe('OpenApi', () => {
       expect(defaultResponse.body).toEqual({
         error: 'UnknownError',
       });
-
       expect(customResponse.body).toEqual({
         error: 'MyCustomError',
       });
@@ -100,13 +111,8 @@ describe('OpenApi', () => {
       const api = OpenApi.create(
         RouteType,
         ErrorType,
-        {
-          [ErrorType.Unknown]: {
-            status: '500',
-            validator: z.object({}),
-            description: 'Default error',
-          },
-        },
+        errorConfigMap,
+        routeExtraPropsMap,
         {
           [RouteType.User]: {
             authorization: false,
@@ -140,8 +146,59 @@ describe('OpenApi', () => {
 
       const req = TestUtils.createRequest('/api', Methods.GET);
       const res = await api.processRootRoute(req);
-
       expect(res.status).toBe(200);
+      expect(res.body).toBe('user');
+    });
+
+    test('Extra route params working', async () => {
+      const api = OpenApi.create(
+        RouteType,
+        ErrorType,
+        errorConfigMap,
+        {
+          [RouteType.User]: z.object({
+            permission: z.enum(['read', 'write']),
+          }),
+        },
+        {
+          [RouteType.User]: {
+            authorization: false,
+            context: async (ctx) => {
+              console.log(ctx.route);
+              return {
+                routePermission: ctx.route.permission,
+              };
+            },
+            errors: {
+              Unknown: true,
+            },
+
+          },
+        },
+        {
+          defaultErrorResponse: {},
+          handleError: () => ({code: ErrorType.Unknown, body: {}}),
+          basePath: '/api',
+          skipDescriptionsCheck: true,
+        }
+      );
+
+      const route = api.factory.createRoute({
+        type: RouteType.User,
+        method: Methods.GET,
+        path: '/',
+        description: '',
+        validators: {
+          response: z.string(),
+        },
+        handler: async (context) => context.routePermission,
+        permission: 'read',
+      });
+      api.addRoute('/', [route]);
+      const req = TestUtils.createRequest('/api', Methods.GET);
+      const res = await api.processRootRoute(req);
+      expect(res.status).toBe(200);
+      expect(res.body).toBe('read');
 
     });
 
