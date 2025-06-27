@@ -1,4 +1,4 @@
-import {RouteExtraPropsMap} from '../RouteExtraPropsMap';
+import {RouteExtraPropsMap} from './RouteExtraPropsMap';
 import {RouteConfig} from './RouteConfig';
 
 export type RouteConfigMap<

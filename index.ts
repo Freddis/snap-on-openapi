@@ -20,7 +20,6 @@ export type {ErrorResponse as OpenApiErrorResponse} from './types/config/ErrorRe
 
 // types
 export type {RouteMap as OpenApiRouteMap} from './types/RouteMap';
-export type {RouteMapRow as OpenApiRouteMapRow} from './types/RouteMapRow';
 export type {Route as OpenApiRoute} from './types/Route';
 export type {AnyRoute as OpenApiAnyRoute} from './types/AnyRoute';
 

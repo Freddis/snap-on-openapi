@@ -26,7 +26,7 @@ import {ExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
 import {Server} from './types/config/Server';
 import {RoutePath} from './types/RoutePath';
 import {Info} from './types/config/Info';
-import {RouteExtraPropsMap} from './types/RouteExtraPropsMap';
+import {RouteExtraPropsMap} from './types/config/RouteExtraPropsMap';
 
 export class OpenApi<
   TRouteTypes extends Record<string, string>,
@@ -263,7 +263,7 @@ export class OpenApi<
     routeExtraParams: TRouteExtraParamsMap,
     routes: TRouteConfigMap,
     spec: Omit<TConfig, 'errors'|'routes'|'routeParams'>
-  ): OpenApi<TRouteTypes, TErrorCodes, NarrowConfig<TRouteTypes, TErrorCodes, TRouteExtraParamsMap, TRouteConfigMap, TErrorMap>>
+  ): OpenApi<TRouteTypes, TErrorCodes, TConfig>
 
   public static create<
     TRouteTypes extends Record<string, string>,

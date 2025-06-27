@@ -1,4 +1,4 @@
-import {RouteExtraPropsMap} from '../RouteExtraPropsMap';
+import {RouteExtraPropsMap} from './RouteExtraPropsMap';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {NarrowConfig} from './NarrowConfig';
 import {RouteConfigMap} from './RouteConfigMap';
