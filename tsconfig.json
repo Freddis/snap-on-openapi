@@ -22,7 +22,9 @@
     "strictBuiltinIteratorReturn": true,
     "strictFunctionTypes": true,
     "noImplicitReturns": true,
-    "alwaysStrict": true
+    "alwaysStrict": true,
+    "noImplicitOverride": true,
+    "removeComments": true,
   },
   "tsc-alias": {
     "resolveFullPaths": true,

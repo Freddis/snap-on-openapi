@@ -1,10 +1,18 @@
-import {RouteExtraPropsMap} from './RouteExtraPropsMap';
 import {RouteConfig} from './RouteConfig';
+import {RouteValidatorMap} from './RouteValidatorMap';
 
 export type RouteConfigMap<
 TRouteTypes extends string,
-TErrorCode extends string,
-TExtraPropsMap extends RouteExtraPropsMap<TRouteTypes>
- > = {
-  [key in TRouteTypes]: RouteConfig<key, TErrorCode, TExtraPropsMap[key]>
+TErrorCodes extends string,
+TParamsMap extends RouteValidatorMap<TRouteTypes> | undefined = undefined,
+TContextMap extends RouteValidatorMap<TRouteTypes> | undefined = undefined
+> = {
+  [key in TRouteTypes]: RouteConfig<
+    key,
+    TErrorCodes,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    TParamsMap extends undefined ? any: Exclude<TParamsMap, undefined>[key],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    TContextMap extends undefined ? any : Exclude<TContextMap, undefined>[key]
+  >
 }

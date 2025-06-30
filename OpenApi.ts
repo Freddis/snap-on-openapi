@@ -9,36 +9,35 @@ import {SchemaGenerator} from './services/SchemaGenerator/SchemaGenerator';
 import {Methods} from './enums/Methods';
 import {Validator} from './services/Validator/Validator';
 import {Config} from './types/config/Config';
-import {RouteConfigMap} from './types/config/RouteConfigMap';
-import {ErrorConfigMap} from './types/config/ErrorConfigMap';
 import {BuiltInError} from './types/errors/BuiltInError';
-import {NarrowConfig} from './types/config/NarrowConfig';
 import {Logger} from './services/Logger/Logger';
 import {DescriptionChecker} from './services/DescriptionChecker/DescriptionChecker';
 import {DevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';
 import {ClientGenerator} from './services/ClientGenerator/ClientGenerator';
 import {ValidationUtils} from './services/ValidationUtils/ValidationUtils';
-import {SampleRouteType} from './enums/SampleRouteType';
-import z from 'zod';
 import {TanstackStartWrapper} from './services/TanstackStartWrapper/TanstackStartWrapper';
 import {Wrappers} from './types/Wrappers';
 import {ExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
 import {Server} from './types/config/Server';
 import {RoutePath} from './types/RoutePath';
 import {Info} from './types/config/Info';
-import {RouteExtraPropsMap} from './types/config/RouteExtraPropsMap';
+import {SampleRouteType} from './enums/SampleRouteType';
+import {ConfigBuilder} from './services/ConfigHelper/ConfigBuilder';
+import {DefaultConfig} from './services/ConfigHelper/types/DefaultConfig';
+import {DefaultErrorMap} from './services/ConfigHelper/types/DefaultErrorMap';
+import {DefaultRouteMap} from './services/ConfigHelper/types/DefaultRouteMap';
+import {InitialBuilder} from './types/InitialBuilder';
+import {DefaultRouteContextMap} from './services/ConfigHelper/types/DefaultRouteContextMap';
 
-export class OpenApi<
-  TRouteTypes extends Record<string, string>,
-  TErrorCodes extends Record<string, string>,
-  TConfig extends Config<TRouteTypes, TErrorCodes>
-> {
+export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends Config<TRouteTypes, TErrorCodes>> {
+
+  public static builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
-  public readonly factory: RoutingFactory<TRouteTypes, TConfig>;
-  public readonly schemaGenerator: SchemaGenerator<TRouteTypes, TConfig>;
+  public readonly factory: RoutingFactory<TRouteTypes, TErrorCodes, TConfig>;
+  public readonly schemaGenerator: SchemaGenerator<TRouteTypes, TErrorCodes, TConfig>;
   public readonly clientGenerator: ClientGenerator<TRouteTypes, TErrorCodes, TConfig> = new ClientGenerator(this);
   public readonly wrappers: Wrappers<TRouteTypes, TErrorCodes, TConfig>;
-  protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
+  protected routes: AnyRoute<TRouteTypes>[] = [];
   protected logger: Logger;
   protected basePath: RoutePath;
   protected developmentUtils: DevelopmentUtils;
@@ -46,12 +45,12 @@ export class OpenApi<
   protected descriptionChecker: DescriptionChecker;
   protected servers: Server[] = [];
 
-  protected constructor(a: TRouteTypes, b: TErrorCodes, spec: TConfig) {
+  protected constructor(spec: TConfig) {
     this.spec = spec;
     this.logger = new Logger('OpenAPI');
     this.descriptionChecker = new DescriptionChecker();
     this.developmentUtils = new DevelopmentUtils();
-    this.factory = new RoutingFactory<TRouteTypes, TConfig>(spec);
+    this.factory = new RoutingFactory<TRouteTypes, TErrorCodes, TConfig>(spec);
     this.basePath = spec.basePath;
     const info: Info = {
       title: spec.apiName ?? 'My API',
@@ -76,25 +75,47 @@ export class OpenApi<
   public getServers(): Server[] {
     return this.servers;
   }
-
-  public addRoute(pathExtension: RoutePath, routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[]) {
-    const newRoutes = routes.map((x) => ({...x, path: `${pathExtension}${x.path}` as RoutePath}));
+  public addRoute(route: AnyRoute<TRouteTypes>) {
+    if (!this.spec.skipDescriptionsCheck) {
+      this.descriptionChecker.checkRoutes([route]);
+    }
+    this.routes.push(route);
+  }
+  public addRoutes(pathExtension: RoutePath, routes: AnyRoute<TRouteTypes>[]) {
+    const newRoutes = routes.map((x) => ({
+      ...x,
+      path: this.mergePaths(pathExtension, x.path),
+    }));
     if (!this.spec.skipDescriptionsCheck) {
       this.descriptionChecker.checkRoutes(newRoutes);
     }
     this.routes.push(...newRoutes);
   }
-
-  public addRouteMap(routeMap: RouteMap<TRouteTypes[keyof TRouteTypes]>) {
+  public addRouteMap(routeMap: RouteMap<TRouteTypes>) {
     for (const [path, routes] of Object.entries(routeMap)) {
-      this.addRoute(path, routes);
+      this.addRoutes(path, routes);
     }
   }
+  public mergePaths(...paths: RoutePath[]): RoutePath {
+    let final : RoutePath = '/';
+    for (const path of paths) {
+      if (path === '/') {
+        continue;
+      }
+      if (final === '/') {
+        final = path;
+        continue;
+      }
+      final = `${final}${path}` as RoutePath;
+    }
+    return final;
+  }
+
   public addServer(url: string, description:string,) {
     this.servers.push({description, url});
   }
-  protected getRouteForPath(path: string, method: string): AnyRoute<TRouteTypes[keyof TRouteTypes]> | null {
-    const fittingRoutes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[] = [];
+  protected getRouteForPath(path: string, method: string): AnyRoute<TRouteTypes> | null {
+    const fittingRoutes: AnyRoute<TRouteTypes>[] = [];
     outer:
     for (const route of this.routes) {
       if (route.method === method) {
@@ -130,7 +151,6 @@ export class OpenApi<
         this.logger.info(`Route for ${originalReq.method}:${urlPath} not found`);
         throw new BuiltInError(ErrorCode.NotFound);
       }
-
       // obtaining path params
       const pathParams: Record<string, string> = {};
       const routeParts = route.path.split('/');
@@ -183,7 +203,7 @@ export class OpenApi<
         if (!body.success) {
           throw new ValidationError(body.error, ValidationLocations.Body);
         }
-        const context = await this.spec.routes[route.type].context({
+        const context = await this.spec.routes[route.type].contextFactory({
           route: route,
           request: originalReq,
           params: {
@@ -201,7 +221,7 @@ export class OpenApi<
           },
         });
       } else {
-        const context = await this.spec.routes[route.type].context({
+        const context = await this.spec.routes[route.type].contextFactory({
           route: route,
           request: originalReq,
           params: {
@@ -226,11 +246,12 @@ export class OpenApi<
       this.logger.info('Response: 200', validated.data);
       return {status: 200, body: validated.data};
     } catch (e: unknown) {
-      const response = this.spec.handleError(e);
+      const response = this.spec.handleError ? this.spec.handleError(e) : this.spec.defaultError;
       const status = this.spec.errors[response.code].status;
-      const valid = this.spec.errors[response.code].validator.safeParse(response.body);
+      const valid = this.spec.errors[response.code].responseValidator.safeParse(response.body);
       if (!valid.success) {
-        return {status: 500, body: this.spec.defaultErrorResponse};
+        const status = this.spec.errors[this.spec.defaultError.code].status;
+        return {status: Number(status), body: this.spec.defaultError.body};
       }
       this.logger.info(`Response: '${status}'`, response.body);
       this.logger.error('Error during request openAPI route handling', e);
@@ -238,117 +259,10 @@ export class OpenApi<
     }
   }
 
-  public static create(): OpenApi<
-    typeof SampleRouteType,
-    typeof ErrorCode,
-    Config<typeof SampleRouteType, typeof ErrorCode>
-  >;
-
-  public static create<TRouteTypes extends Record<string, string>, TErrorCodes extends Record<string, string>, >(
-    routeEnum: TRouteTypes,
-    errorEnum: TErrorCodes,
-  ): OpenApi<TRouteTypes, TErrorCodes, Config<TRouteTypes, TErrorCodes>>
-
-  public static create<
-    TRouteTypes extends Record<string, string>,
-    TErrorCodes extends Record<string, string>,
-    TRouteExtraParamsMap extends RouteExtraPropsMap<TRouteTypes[keyof TRouteTypes]>,
-    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes], TRouteExtraParamsMap>,
-    TErrorMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>,
-    TConfig extends NarrowConfig<TRouteTypes, TErrorCodes, TRouteExtraParamsMap, TRouteConfigMap, TErrorMap>
-  >(
-    routeEnum: TRouteTypes,
-    errorEnum: TErrorCodes,
-    errors: TErrorMap,
-    routeExtraParams: TRouteExtraParamsMap,
-    routes: TRouteConfigMap,
-    spec: Omit<TConfig, 'errors'|'routes'|'routeParams'>
-  ): OpenApi<TRouteTypes, TErrorCodes, TConfig>
-
-  public static create<
-    TRouteTypes extends Record<string, string>,
-    TErrorCodes extends Record<string, string>,
-    TRouteExtraParamsMap extends RouteExtraPropsMap<TRouteTypes[keyof TRouteTypes]>,
-    TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes], TRouteExtraParamsMap>,
-    TErrorMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>,
-    TConfig extends NarrowConfig<TRouteTypes, TErrorCodes, TRouteExtraParamsMap, TRouteConfigMap, TErrorMap>
-  >(
-    routeEnum?: TRouteTypes,
-    errorEnum?: TErrorCodes,
-    errors?: TErrorMap,
-    routeExtraParams?: TRouteExtraParamsMap,
-    routes?: TRouteConfigMap,
-    spec?: Omit<TConfig, 'errors'|'routes'>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): OpenApi<any, any, any> {
-    const defaultErrors: ErrorConfigMap<ErrorCode> = {
-      [ErrorCode.UnknownError]: {
-        status: '500',
-        description: 'Unknown Api Error',
-        validator: z.object({
-          error: z.literal(ErrorCode.UnknownError),
-        }),
-      },
-      [ErrorCode.ValidationFailed]: {
-        status: '422',
-        description: '',
-        validator: z.object({
-          error: z.literal(ErrorCode.ValidationFailed),
-        }),
-      },
-      [ErrorCode.NotFound]: {
-        status: '404',
-        description: 'Route Not Found',
-        validator: z.object({
-          error: z.literal(ErrorCode.NotFound),
-        }),
-      },
-    };
-    type DefaultConf = NarrowConfig<
-      typeof SampleRouteType,
-      typeof ErrorCode,
-      RouteExtraPropsMap<SampleRouteType>,
-      RouteConfigMap<SampleRouteType, ErrorCode, RouteExtraPropsMap<SampleRouteType>>,
-      ErrorConfigMap<ErrorCode>
-    >
-    const defaultConf: Omit<DefaultConf, 'errors'| 'routes'> = {
-      handleError: () => {
-        return {code: ErrorCode.UnknownError, body: {error: ErrorCode.UnknownError}};
-      },
-      defaultErrorResponse: {
-        error: ErrorCode.UnknownError,
-      },
-      basePath: '/api',
-      routeParams: {
-        [SampleRouteType.Public]: z.object({}),
-      },
-    };
-    const createDefaultRoutes = (routeTypes: Record<string, string>, errorTypes: Record<string, string>) => {
-      const x: RouteConfigMap<string, string, RouteExtraPropsMap<string>> = {
-      };
-      const allErrorsEnabled = Object.keys(errorTypes).reduce((acc, val) => ({...acc, [val]: true}), {});
-      for (const type of Object.values(routeTypes)) {
-        x[type] = {
-          authorization: false,
-          context: async () => ({}),
-          errors: {
-            ...allErrorsEnabled,
-          },
-        };
-      }
-      return x;
-    };
-    const routeTypes = routeEnum ?? SampleRouteType;
-    const errorTypes = errorEnum && routeEnum ? errorEnum : ErrorCode;
-    const errorConfig = errorEnum && routeEnum && errors ? errors : defaultErrors;
-    const routeConfig = errorEnum && routeEnum && errors && routes ? routes : createDefaultRoutes(routeTypes, errorTypes);
-    const conf = errorEnum && routeEnum && errors && routes && spec ? spec : defaultConf;
-    const config = {
-      ...conf,
-      routes: routeConfig,
-      errors: errorConfig,
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new OpenApi(routeTypes as any, errorTypes as any, config as any);
+  protected static getBuilder() {
+    return new ConfigBuilder<SampleRouteType,
+     ErrorCode, DefaultErrorMap, DefaultRouteContextMap, DefaultRouteContextMap, DefaultRouteMap, DefaultConfig>((conf) => {
+       return new OpenApi(conf);
+     });
   }
 }

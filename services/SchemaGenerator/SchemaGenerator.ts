@@ -11,19 +11,20 @@ import {Server} from '../../types/config/Server';
 import {Info} from '../../types/config/Info';
 
 export class SchemaGenerator<
-  TRouteTypes extends Record<string, string>,
-  TConfig extends Config<TRouteTypes, Record<string, string>>
+  TRouteTypes extends string,
+  TErrorCodes extends string,
+  TConfig extends Config<TRouteTypes, TErrorCodes>
 > {
   protected logger: Logger;
   protected info: Info;
-  protected routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[];
+  protected routes: AnyRoute<TRouteTypes>[];
   protected servers: Server[];
   protected routeSpec: TConfig;
   constructor(
     invoker: string,
     info: Info,
     spec: TConfig,
-    routes: AnyRoute<TRouteTypes[keyof TRouteTypes]>[],
+    routes: AnyRoute<TRouteTypes>[],
     servers: Server[],
   ) {
     this.logger = new Logger(SchemaGenerator.name, invoker);
@@ -84,7 +85,7 @@ export class SchemaGenerator<
   }
 
   protected createOperation(
-    route: AnyRoute<TRouteTypes[keyof TRouteTypes]>
+    route: AnyRoute<TRouteTypes>
   ): ZodOpenApiOperationObject {
     const requestParams: ZodOpenApiParameters = {
       query: route.validators.query,
@@ -103,7 +104,10 @@ export class SchemaGenerator<
         },
       },
     };
-    const enabledErrors = Object.keys(this.routeSpec.routes[route.type].errors);
+    const enabledErrors = Object.keys(this.routeSpec.routes[route.type].errors ?? {});
+    if (!enabledErrors.find((x) => x === this.routeSpec.defaultError.code)) {
+      enabledErrors.push(this.routeSpec.defaultError.code);
+    }
     const httpStatusMap: Map<string, ErrorConfig<ZodObject<ZodRawShape>>[]> = new Map();
     for (const [key, error] of Object.entries(this.routeSpec.errors)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,8 +126,8 @@ export class SchemaGenerator<
         throw new Error(`No errors found for code '${code}'`);
       }
       const description = errors.map((x) => x.description).join(' or ');
-      const validators = errors.map((x) => x.validator) as [ZodObject<ZodRawShape>, ZodObject<ZodRawShape>];
-      const schema = errors.length === 1 ? error.validator : z.union(validators).openapi({unionOneOf: true});
+      const validators = errors.map((x) => x.responseValidator) as [ZodObject<ZodRawShape>, ZodObject<ZodRawShape>];
+      const schema = errors.length === 1 ? error.responseValidator : z.union(validators).openapi({unionOneOf: true});
       operation.responses[error.status] = {
         description: description,
         content: {

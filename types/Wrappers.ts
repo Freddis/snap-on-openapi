@@ -3,8 +3,8 @@ import {TanstackStartWrapper} from '../services/TanstackStartWrapper/TanstackSta
 import {Config} from './config/Config';
 
 export interface Wrappers<
-  TRouteTypes extends Record<string, string>,
-  TErrorCodes extends Record<string, string>,
+  TRouteTypes extends string,
+  TErrorCodes extends string,
   TConfig extends Config<TRouteTypes, TErrorCodes>
 > {
   tanstackStart: TanstackStartWrapper<TRouteTypes, TErrorCodes, TConfig>

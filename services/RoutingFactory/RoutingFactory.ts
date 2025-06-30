@@ -4,9 +4,11 @@ import {Route} from '../../types/Route';
 import {Config} from '../../types/config/Config';
 import {RouteExtraProps} from '../../types/config/RouteExtraProps';
 
+type SafeMerge<T> = T extends undefined ? object : T;
 export class RoutingFactory<
- TRouteTypes extends Record<string, string>,
- TConfig extends Config<TRouteTypes, Record<string, string>>
+ TRouteTypes extends string,
+ TErrorCodes extends string,
+ TConfig extends Config<TRouteTypes, TErrorCodes>
 > {
   protected map: TConfig;
 
@@ -15,7 +17,7 @@ export class RoutingFactory<
   }
 
   public createRoute<
-      TRouteType extends TRouteTypes[keyof TRouteTypes],
+      TType extends TRouteTypes,
       TMethod extends Methods,
       TResponseValidator extends ZodFirstPartySchemaTypes,
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
@@ -23,17 +25,17 @@ export class RoutingFactory<
       TBodyValidator extends ZodObject<ZodRawShape> | undefined = undefined,
     >(
       params: Route<
-        TRouteType,
-        Awaited<ReturnType<TConfig['routes'][TRouteType]['context']>>,
+        TType,
+        Awaited<ReturnType<TConfig['routes'][TType]['context']>>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
         TBodyValidator,
         TMethod
-      > & RouteExtraProps<TConfig['routeParams'][TRouteType]>
+      > & (SafeMerge<RouteExtraProps<TConfig['routes'][TType]['extraProps']>>)
     ): Route<
-        TRouteTypes[keyof TRouteTypes],
-        Awaited<ReturnType<TConfig['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
+        TType,
+        Awaited<ReturnType<TConfig['routes'][TType]['context']>>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
@@ -41,8 +43,8 @@ export class RoutingFactory<
       > {
 
     const result : Route<
-      TRouteTypes[keyof TRouteTypes],
-      Awaited<ReturnType<TConfig['routes'][TRouteTypes[keyof TRouteTypes]]['context']>>,
+      TType,
+      Awaited<ReturnType<TConfig['routes'][TType]['context']>>,
       TResponseValidator,
       TPathValidator,
       TQueryValidator,

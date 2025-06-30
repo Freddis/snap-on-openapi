@@ -1,17 +1,19 @@
-import {RouteExtraPropsMap} from './RouteExtraPropsMap';
+
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {NarrowConfig} from './NarrowConfig';
 import {RouteConfigMap} from './RouteConfigMap';
 
 export type Config<
-TRouteTypes extends Record<string, string>,
-TErrorCodes extends Record<string, string>,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-TRoutePropsMap extends RouteExtraPropsMap<TRouteTypes[keyof TRouteTypes]> = any
+TRouteTypes extends string,
+TErrorCodes extends string,
 > = NarrowConfig<
   TRouteTypes,
   TErrorCodes,
-  TRoutePropsMap,
-  RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes], TRoutePropsMap>,
-  ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
+  ErrorConfigMap<TErrorCodes>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  RouteConfigMap<TRouteTypes, TErrorCodes, any, any>
  >

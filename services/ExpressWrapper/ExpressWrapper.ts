@@ -5,8 +5,8 @@ import {ExpressApp} from './types/ExpressApp';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 
 export class ExpressWrapper<
- TRouteTypes extends Record<string, string>,
- TErrorCodes extends Record<string, string>,
+ TRouteTypes extends string,
+ TErrorCodes extends string,
  TConfig extends OpenApiConfig<TRouteTypes, TErrorCodes>
 > {
   protected service: OpenApi<TRouteTypes, TErrorCodes, TConfig>;

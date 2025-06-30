@@ -1,29 +1,25 @@
-import {RouteExtraPropsMap} from './RouteExtraPropsMap';
 import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {ErrorResponse} from './ErrorResponse';
 import {RouteConfigMap} from './RouteConfigMap';
+import {RouteValidatorMap} from './RouteValidatorMap';
 import {Server} from './Server';
 
 export type NarrowConfig<
-TRouteTypes extends Record<string, string>,
-TErrorCodes extends Record<string, string>,
-TExtraPropsMap extends RouteExtraPropsMap<TRouteTypes[keyof TRouteTypes]>,
-TRouteConfigMap extends RouteConfigMap<TRouteTypes[keyof TRouteTypes], TErrorCodes[keyof TErrorCodes], TExtraPropsMap>,
-TErrorConfigMap extends ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>
+TRouteTypes extends string,
+TErrorCodes extends string,
+TErrorConfigMap extends ErrorConfigMap<TErrorCodes>,
+TRouteParamMap extends RouteValidatorMap<TRouteTypes>,
+TRouteContextMap extends RouteValidatorMap<TRouteTypes>,
+TRouteConfigMap extends RouteConfigMap<TRouteTypes, TErrorCodes, TRouteParamMap, TRouteContextMap>,
 >
  = {
   basePath: RoutePath
   routes: TRouteConfigMap
   errors: TErrorConfigMap
-  routeParams: TExtraPropsMap
-  handleError: (e: unknown) => {
-    code: TErrorCodes[keyof TErrorCodes],
-    body: ErrorResponse<ErrorConfigMap<TErrorCodes[keyof TErrorCodes]>>
-  }
-  defaultErrorResponse: object
+  defaultError: ErrorResponse<TErrorCodes, TErrorConfigMap>
   skipDescriptionsCheck?: boolean;
-  servers?: Server[];
   apiName?: string,
-
+  servers?: Server[];
+  handleError?: (e: unknown) => ErrorResponse<TErrorCodes, TErrorConfigMap>
 }

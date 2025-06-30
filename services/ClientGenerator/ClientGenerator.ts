@@ -4,8 +4,8 @@ import {Config} from '../../types/config/Config';
 import {parse} from 'yaml';
 
 export class ClientGenerator<
-  TRouteTypes extends Record<string, string>,
-  TErrorCodes extends Record<string, string>,
+  TRouteTypes extends string,
+  TErrorCodes extends string,
   TConfig extends Config<TRouteTypes, TErrorCodes>> {
   protected api: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
 
