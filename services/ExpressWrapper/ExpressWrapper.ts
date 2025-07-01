@@ -5,6 +5,7 @@ import {ExpressApp} from './types/ExpressApp';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 import {OpenApi} from '../..';
 import {AnyConfig} from '../../types/config/AnyConfig';
+import {RoutePath} from '../../types/RoutePath';
 
 export class ExpressWrapper<
  TRouteTypes extends string,
@@ -13,13 +14,13 @@ export class ExpressWrapper<
 > {
   protected service: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
   protected developmentUtils: DevelopmentUtils;
-  protected schemaRoute = '/openapi-schema';
+  protected schemaRoute: RoutePath = '/openapi-schema';
 
   constructor(openApi: OpenApi<TRouteTypes, TErrorCodes, TConfig>) {
     this.service = openApi;
     this.developmentUtils = new DevelopmentUtils();
   }
-  public createStoplightRoute(route: string, expressApp: ExpressApp): void {
+  public createStoplightRoute(route: RoutePath, expressApp: ExpressApp): void {
     const handler: ExpressHandler = async (req, res) => {
       const body = this.developmentUtils.getStoplightHtml(this.schemaRoute);
       res.status(200).header('Content-Type', 'text/html').send(body);
@@ -28,7 +29,7 @@ export class ExpressWrapper<
     expressApp.get(route, handler);
   }
 
-  public createSwaggerRoute(route: string, expressApp: ExpressApp): void {
+  public createSwaggerRoute(route: RoutePath, expressApp: ExpressApp): void {
     const handler: ExpressHandler = async (req, res) => {
       const body = this.developmentUtils.getSwaggerHTML(this.schemaRoute);
       res.status(200).header('Content-Type', 'text/html').send(body);
@@ -37,7 +38,7 @@ export class ExpressWrapper<
     expressApp.get(route, handler);
   }
 
-  public createSchemaRoute(route: string, expressApp: ExpressApp): void {
+  public createSchemaRoute(route: RoutePath, expressApp: ExpressApp): void {
     const handler: ExpressHandler = async (req, res) => {
       const body = this.service.schemaGenerator.getYaml();
       res.status(200).header('Content-Type', 'text/html').send(body);
@@ -47,11 +48,17 @@ export class ExpressWrapper<
 
   public createOpenApiRootRoute(expressApp: ExpressApp): void {
     const route = this.service.getBasePath();
+    const headerToStr = (header: string | string[]) => {
+      if (Array.isArray(header)) {
+        return header.join(',');
+      }
+      return header;
+    };
     const handler: ExpressHandler = async (req, res) => {
       const emptyHeaders: Record<string, string> = {};
       const headers = Object.entries(req.headers).reduce((acc, val) => ({
         ...acc,
-        ...(typeof val[1] === 'string' ? {[val[0]]: val[1]} : {}),
+        ...(typeof val[1] !== 'undefined' ? {[val[0]]: headerToStr(val[1])} : {}),
       }), emptyHeaders);
       const url = format({
         protocol: req.protocol,

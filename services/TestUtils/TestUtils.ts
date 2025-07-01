@@ -1,5 +1,7 @@
+import z from 'zod';
 import {OpenApi} from '../../OpenApi';
 import {Methods} from '../../enums/Methods';
+import {SampleRouteType} from '../../enums/SampleRouteType';
 import {RoutePath} from '../../types/RoutePath';
 
 export class TestUtils {
@@ -11,7 +13,19 @@ export class TestUtils {
   }
 
   static createOpenApi() {
-    return OpenApi.builder.create();
+    const api = OpenApi.builder.create();
+    const sampleRoute = api.factory.createRoute({
+      type: SampleRouteType.Public,
+      method: Methods.GET,
+      path: '/sample',
+      description: 'Sample route',
+      validators: {
+        response: z.string().openapi({description: 'Sample response'}),
+      },
+      handler: () => Promise.resolve('success'),
+    });
+    api.addRoute(sampleRoute);
+    return api;
   }
 
   static async awaitGeneric<T>(timeoutMs: number, intervalMs: number, callback: () => Promise<T|null>) : Promise<T|null> {
