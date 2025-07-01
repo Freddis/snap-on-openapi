@@ -8,7 +8,7 @@ import {RouteMap} from './types/RouteMap';
 import {SchemaGenerator} from './services/SchemaGenerator/SchemaGenerator';
 import {Methods} from './enums/Methods';
 import {Validator} from './services/Validator/Validator';
-import {Config} from './types/config/Config';
+import {AnyConfig} from './types/config/AnyConfig';
 import {BuiltInError} from './types/errors/BuiltInError';
 import {Logger} from './services/Logger/Logger';
 import {DescriptionChecker} from './services/DescriptionChecker/DescriptionChecker';
@@ -22,14 +22,14 @@ import {Server} from './types/config/Server';
 import {RoutePath} from './types/RoutePath';
 import {Info} from './types/config/Info';
 import {SampleRouteType} from './enums/SampleRouteType';
-import {ConfigBuilder} from './services/ConfigHelper/ConfigBuilder';
-import {DefaultConfig} from './services/ConfigHelper/types/DefaultConfig';
-import {DefaultErrorMap} from './services/ConfigHelper/types/DefaultErrorMap';
-import {DefaultRouteMap} from './services/ConfigHelper/types/DefaultRouteMap';
+import {ConfigBuilder} from './services/ConfigBuilder/ConfigBuilder';
+import {DefaultConfig} from './services/ConfigBuilder/types/DefaultConfig';
+import {DefaultErrorMap} from './services/ConfigBuilder/types/DefaultErrorMap';
+import {DefaultRouteMap} from './services/ConfigBuilder/types/DefaultRouteMap';
 import {InitialBuilder} from './types/InitialBuilder';
-import {DefaultRouteContextMap} from './services/ConfigHelper/types/DefaultRouteContextMap';
+import {DefaultRouteContextMap} from './services/ConfigBuilder/types/DefaultRouteContextMap';
 
-export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends Config<TRouteTypes, TErrorCodes>> {
+export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
 
   public static builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -41,22 +41,22 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   protected logger: Logger;
   protected basePath: RoutePath;
   protected developmentUtils: DevelopmentUtils;
-  protected spec: TConfig;
+  protected config: TConfig;
   protected descriptionChecker: DescriptionChecker;
   protected servers: Server[] = [];
 
-  protected constructor(spec: TConfig) {
-    this.spec = spec;
+  protected constructor(config: TConfig) {
+    this.config = config;
     this.logger = new Logger('OpenAPI');
     this.descriptionChecker = new DescriptionChecker();
     this.developmentUtils = new DevelopmentUtils();
-    this.factory = new RoutingFactory<TRouteTypes, TErrorCodes, TConfig>(spec);
-    this.basePath = spec.basePath;
+    this.factory = new RoutingFactory<TRouteTypes, TErrorCodes, TConfig>(config);
+    this.basePath = config.basePath;
     const info: Info = {
-      title: spec.apiName ?? 'My API',
+      title: config.apiName ?? 'My API',
       version: '3.1.0',
     };
-    this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), info, this.spec, this.routes, this.servers);
+    this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), info, this.config, this.routes, this.servers);
     this.wrappers = {
       tanstackStart: new TanstackStartWrapper(this),
       express: new ExpressWrapper(this),
@@ -65,7 +65,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       description: 'Local',
       url: this.basePath,
     });
-    const servers = this.spec.servers ?? [];
+    const servers = this.config.servers ?? [];
     this.servers.push(...servers);
   }
 
@@ -76,7 +76,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
     return this.servers;
   }
   public addRoute(route: AnyRoute<TRouteTypes>) {
-    if (!this.spec.skipDescriptionsCheck) {
+    if (!this.config.skipDescriptionsCheck) {
       this.descriptionChecker.checkRoutes([route]);
     }
     this.routes.push(route);
@@ -86,7 +86,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       ...x,
       path: this.mergePaths(pathExtension, x.path),
     }));
-    if (!this.spec.skipDescriptionsCheck) {
+    if (!this.config.skipDescriptionsCheck) {
       this.descriptionChecker.checkRoutes(newRoutes);
     }
     this.routes.push(...newRoutes);
@@ -203,7 +203,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         if (!body.success) {
           throw new ValidationError(body.error, ValidationLocations.Body);
         }
-        const context = await this.spec.routes[route.type].contextFactory({
+        const context = await this.config.routes[route.type].contextFactory({
           route: route,
           request: originalReq,
           params: {
@@ -221,7 +221,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
           },
         });
       } else {
-        const context = await this.spec.routes[route.type].contextFactory({
+        const context = await this.config.routes[route.type].contextFactory({
           route: route,
           request: originalReq,
           params: {
@@ -246,12 +246,12 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       this.logger.info('Response: 200', validated.data);
       return {status: 200, body: validated.data};
     } catch (e: unknown) {
-      const response = this.spec.handleError ? this.spec.handleError(e) : this.spec.defaultError;
-      const status = this.spec.errors[response.code].status;
-      const valid = this.spec.errors[response.code].responseValidator.safeParse(response.body);
+      const response = this.config.handleError ? this.config.handleError(e) : this.config.defaultError;
+      const status = this.config.errors[response.code].status;
+      const valid = this.config.errors[response.code].responseValidator.safeParse(response.body);
       if (!valid.success) {
-        const status = this.spec.errors[this.spec.defaultError.code].status;
-        return {status: Number(status), body: this.spec.defaultError.body};
+        const status = this.config.errors[this.config.defaultError.code].status;
+        return {status: Number(status), body: this.config.defaultError.body};
       }
       this.logger.info(`Response: '${status}'`, response.body);
       this.logger.error('Error during request openAPI route handling', e);

@@ -1,14 +1,14 @@
 import {ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
 import {Methods} from '../../enums/Methods';
 import {Route} from '../../types/Route';
-import {Config} from '../../types/config/Config';
+import {AnyConfig} from '../../types/config/AnyConfig';
 import {RouteExtraProps} from '../../types/config/RouteExtraProps';
 
 type SafeMerge<T> = T extends undefined ? object : T;
 export class RoutingFactory<
  TRouteTypes extends string,
  TErrorCodes extends string,
- TConfig extends Config<TRouteTypes, TErrorCodes>
+ TConfig extends AnyConfig<TRouteTypes, TErrorCodes>
 > {
   protected map: TConfig;
 

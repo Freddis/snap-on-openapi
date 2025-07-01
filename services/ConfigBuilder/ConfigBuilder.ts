@@ -3,10 +3,10 @@ import {Config} from '../../types/config/Config';
 import {RouteConfigMap} from '../../types/config/RouteConfigMap';
 import {OpenApi} from '../..';
 import {AnyConfig} from '../../types/config/AnyConfig';
+import {DefaultConfig} from './types/DefaultConfig';
+import {OpenApiConstructor} from './types/OpenApiConstructor';
 import {OmitMappedField} from '../../types/config/OmitMappedField';
 import {RouteValidatorMap} from '../../types/config/RouteValidatorMap';
-import {DefaultConfig} from '../ConfigBuilder/types/DefaultConfig';
-import {OpenApiConstructor} from '../ConfigBuilder/types/OpenApiConstructor';
 
 export class ConfigBuilder<
   TRouteTypes extends string,

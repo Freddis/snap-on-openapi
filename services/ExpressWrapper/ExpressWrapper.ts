@@ -1,13 +1,15 @@
-import {OpenApi, OpenApiConfig} from 'strap-on-openapi';
+
 import {format} from 'url';
 import {ExpressHandler} from './types/ExpressHandler';
 import {ExpressApp} from './types/ExpressApp';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
+import {OpenApi} from '../..';
+import {AnyConfig} from '../../types/config/AnyConfig';
 
 export class ExpressWrapper<
  TRouteTypes extends string,
  TErrorCodes extends string,
- TConfig extends OpenApiConfig<TRouteTypes, TErrorCodes>
+ TConfig extends AnyConfig<TRouteTypes, TErrorCodes>
 > {
   protected service: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
   protected developmentUtils: DevelopmentUtils;

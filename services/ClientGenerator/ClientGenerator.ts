@@ -1,12 +1,12 @@
 import {createClient, UserConfig} from '@hey-api/openapi-ts';
 import {OpenApi} from '../../OpenApi';
-import {Config} from '../../types/config/Config';
+import {AnyConfig} from '../../types/config/AnyConfig';
 import {parse} from 'yaml';
 
 export class ClientGenerator<
   TRouteTypes extends string,
   TErrorCodes extends string,
-  TConfig extends Config<TRouteTypes, TErrorCodes>> {
+  TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   protected api: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
 
   constructor(api :OpenApi<TRouteTypes, TErrorCodes, TConfig>) {

@@ -1,13 +1,13 @@
 import {ErrorCode} from '../../../enums/ErrorCode';
 import {SampleRouteType} from '../../../enums/SampleRouteType';
-import {NarrowConfig} from '../../../types/config/NarrowConfig';
+import {Config} from '../../../types/config/Config';
 import {RoutePath} from '../../../types/RoutePath';
 import {DefaultErrorMap} from './DefaultErrorMap';
 import {DefaultRouteContextMap} from './DefaultRouteContextMap';
 import {DefaultRouteMap} from './DefaultRouteMap';
 import {DefaultRouteParamsMap} from './DefaultRouteParamsMap';
 
-export class DefaultConfig implements NarrowConfig<
+export class DefaultConfig implements Config<
   SampleRouteType,
   ErrorCode,
   DefaultErrorMap,

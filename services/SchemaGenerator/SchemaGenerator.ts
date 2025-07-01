@@ -3,7 +3,7 @@ import {stringify} from 'yaml';
 import {createDocument, ZodOpenApiObject, ZodOpenApiOperationObject, ZodOpenApiParameters, ZodOpenApiPathsObject} from 'zod-openapi';
 import {AnyRoute} from '../../types/AnyRoute';
 import {z, ZodObject, ZodRawShape} from 'zod';
-import {Config} from '../../types/config/Config';
+import {AnyConfig} from '../../types/config/AnyConfig';
 import {ErrorConfig} from '../../types/config/ErrorConfig';
 import {Methods} from '../../enums/Methods';
 import {Logger} from '../Logger/Logger';
@@ -13,7 +13,7 @@ import {Info} from '../../types/config/Info';
 export class SchemaGenerator<
   TRouteTypes extends string,
   TErrorCodes extends string,
-  TConfig extends Config<TRouteTypes, TErrorCodes>
+  TConfig extends AnyConfig<TRouteTypes, TErrorCodes>
 > {
   protected logger: Logger;
   protected info: Info;

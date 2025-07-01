@@ -9,7 +9,7 @@ import {SampleRouteType} from '../../enums/SampleRouteType';
 import {TestUtils} from '../TestUtils/TestUtils';
 import {RouteConfig} from '../../types/config/RouteConfig';
 import {RoutePath} from '../../types/RoutePath';
-import {Config} from '../../types/config/Config';
+import {AnyConfig} from '../../types/config/AnyConfig';
 
 describe('ConfigBuilder', () => {
 
@@ -187,7 +187,7 @@ describe('ConfigBuilder', () => {
       };
     }
 
-    class AppConfig implements Config<MyRouteTypes, ErrorCode> {
+    class AppConfig implements AnyConfig<MyRouteTypes, ErrorCode> {
       basePath: RoutePath = '/api';
       routes = new AppRouteConfig();
       errors = new AppErrorConfig();

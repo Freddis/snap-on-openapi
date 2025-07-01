@@ -17,6 +17,8 @@ export type {RouteConfig as OpenApiRouteConfig} from './types/config/RouteConfig
 export type {RouteConfigMap as OpenApiRouteConfigMap} from './types/config/RouteConfigMap';
 export type {ContextParams as OpenApiContextParams} from './types/config/ContextParams';
 export type {ErrorResponse as OpenApiErrorResponse} from './types/config/ErrorResponse';
+export type {RouteValidatorMap as OpenApiRouteValidatorMap} from './types/config/RouteValidatorMap';
+export type {Config as OpenApiConfig} from './types/config/Config';
 
 // types
 export type {RouteMap as OpenApiRouteMap} from './types/RouteMap';
@@ -25,7 +27,7 @@ export type {AnyRoute as OpenApiAnyRoute} from './types/AnyRoute';
 
 //primary
 export {OpenApi} from './OpenApi';
-export type {Config as OpenApiConfig} from './types/config/Config';
+export type {AnyConfig as OpenApiAnyConfig} from './types/config/AnyConfig';
 
 //utils
 export type {DevelopmentUtils as OpenApiDevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';
@@ -36,3 +38,4 @@ export {ValidationUtils as OpenApiValidationUtils} from './services/ValidationUt
 export {TanstackStartWrapper as OpenApiTanstackStartWrapper} from './services/TanstackStartWrapper/TanstackStartWrapper';
 export {ExpressWrapper as OpenApiExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
 export {Logger as OpenApiLogger} from './services/Logger/Logger';
+export {ConfigBuilder as OpenApiConfigBuilder} from './services/ConfigBuilder/ConfigBuilder';

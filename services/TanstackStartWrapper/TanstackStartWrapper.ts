@@ -1,12 +1,12 @@
 import {OpenApi} from '../../OpenApi';
-import {Config} from '../../types/config/Config';
+import {AnyConfig} from '../../types/config/AnyConfig';
 import {RoutePath} from '../../types/RoutePath';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 
 export class TanstackStartWrapper<
  TRouteTypes extends string,
   TErrorCodes extends string,
-  TConfig extends Config<TRouteTypes, TErrorCodes>
+  TConfig extends AnyConfig<TRouteTypes, TErrorCodes>
 > {
   protected service: OpenApi<TRouteTypes, TErrorCodes, TConfig>;
   protected developmentUtils: DevelopmentUtils;
