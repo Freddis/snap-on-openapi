@@ -17,9 +17,7 @@ export class DescriptionChecker {
     this.checkValidatorDescriptions(route, 'responseValidator', 'responseValidator', route.validators.response);
     this.checkValidatorDescriptions(route, 'pathValidator', 'pathValidator', route.validators.path ?? z.object({}), false);
     this.checkValidatorDescriptions(route, 'queryValidator', 'queryValidator', route.validators.query ?? z.object({}), false);
-    if (route.method === 'POST' && route.validators.body) {
-      this.checkValidatorDescriptions(route, 'bodyValidator', 'bodyValidator', route.validators.body ?? z.object({}), false);
-    }
+    this.checkValidatorDescriptions(route, 'bodyValidator', 'bodyValidator', route.validators.body ?? z.object({}), false);
   }
 
   protected checkValidatorDescriptions(
@@ -32,7 +30,7 @@ export class DescriptionChecker {
     const openapi = validator._def.openapi ?? validator._def.zodOpenApi?.openapi;
     if (checkValidatorDescription && !openapi?.description) {
       throw new Error(
-          `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field ${field}`,
+          `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field '${field}'`,
         );
     }
       // console.log(validator._def.typeName)

@@ -78,6 +78,11 @@ describe('ExpressWrapper', () => {
   });
 
   test('Works correctly with array header values', async () => {
+    // that's why you shouldn't go fo 100% coverage
+    // this test is absolutely retarded testing something that doesn't happen in reality
+    // and comes from a rookie conflict of early node types with @types/express
+    // funnily enough this also produces a tiny bit of dead code in production
+    // tl;dr: there cannot be any string[] value for a specific header
     class ExpressAppMock implements ExpressApp {
       handler?: ExpressHandler;
       post(route: string | RegExp, handler: ExpressHandler): void {

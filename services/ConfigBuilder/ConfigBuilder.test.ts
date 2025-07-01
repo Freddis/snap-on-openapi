@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {ErrorCode} from '../../enums/ErrorCode';
-import z, {} from 'zod';
+import z from 'zod';
 import {ErrorConfigMap} from '../../types/config/ErrorConfigMap';
 import {RouteConfigMap} from '../../types/config/RouteConfigMap';
 import {OpenApi} from '../../OpenApi';
