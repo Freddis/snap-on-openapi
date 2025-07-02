@@ -2,7 +2,6 @@ import {describe, expect, test} from 'vitest';
 import {ErrorCode} from '../../enums/ErrorCode';
 import z from 'zod';
 import {ErrorConfigMap} from '../../types/config/ErrorConfigMap';
-import {RouteConfigMap} from '../../types/config/RouteConfigMap';
 import {OpenApi} from '../../OpenApi';
 import {Methods} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
@@ -10,7 +9,7 @@ import {TestUtils} from '../TestUtils/TestUtils';
 import {RouteConfig} from '../../types/config/RouteConfig';
 import {RoutePath} from '../../types/RoutePath';
 import {AnyConfig} from '../../types/config/AnyConfig';
-
+import {AnyRouteConfigMap} from '../../types/config/AnyRouteConfigMap';
 describe('ConfigBuilder', () => {
 
   enum MyRouteTypes {
@@ -71,7 +70,9 @@ describe('ConfigBuilder', () => {
   });
 
   test('Works Well with inferred config', async () => {
-    const api3 = OpenApi.builder.customizeErrors(ErrorCode).defineErrors({
+    const api3 = OpenApi.builder.customizeErrors(
+      ErrorCode
+    ).defineErrors({
       [ErrorCode.UnknownError]: {
         status: '500',
         description: 'Unkwown Error',
@@ -104,10 +105,14 @@ describe('ConfigBuilder', () => {
       body: {error: {code: ErrorCode.UnknownError}},
     }).customizeRoutes(
       SampleRouteType
-    ).defineRoutes({
+    ).defineRouteExtraParams({
+      [SampleRouteType.Public]: z.object({routeParam: z.string()}),
+    }).defineRouteContexts({
+      [SampleRouteType.Public]: z.object({contextParam: z.string()}),
+    }).defineRoutes({
       [SampleRouteType.Public]: {
         authorization: false,
-        contextFactory: (ctx) => Promise.resolve({x: 1, target: ctx.route}),
+        contextFactory: (ctx) => Promise.resolve({contextParam: ctx.route.routeParam}),
         errors: {
           ValidationFailed: true,
         },
@@ -128,13 +133,14 @@ describe('ConfigBuilder', () => {
       validators: {
         response: z.string(),
       },
-      handler: (ctx) => Promise.resolve('dsadas' + ctx.x),
-      target: 'string',
+      handler: (ctx) => Promise.resolve(ctx.contextParam),
+      routeParam: 'myRouteParam',
     });
     api3.addRoutes('/', [route]);
     const req = TestUtils.createRequest('/api/test', Methods.GET);
     const res = await api3.processRootRoute(req);
     expect(res.status).toBe(200);
+    expect(res.body).toBe('myRouteParam');
   });
 
   test('Works Well with class-based config', async () => {
@@ -172,7 +178,7 @@ describe('ConfigBuilder', () => {
       }as const;
     }
 
-    class AppRouteConfig implements RouteConfigMap<MyRouteTypes, ErrorCode> {
+    class AppRouteConfig implements AnyRouteConfigMap<MyRouteTypes, ErrorCode> {
       Public: RouteConfig<MyRouteTypes.Public, ErrorCode, undefined, undefined> = {
         authorization: false,
         extraProps: undefined,
@@ -223,4 +229,3 @@ describe('ConfigBuilder', () => {
     expect(res.body).toBe('My Test Permission');
   });
 });
-

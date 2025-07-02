@@ -7,13 +7,14 @@ import {DefaultConfig} from './types/DefaultConfig';
 import {OpenApiConstructor} from './types/OpenApiConstructor';
 import {OmitMappedField} from '../../types/config/OmitMappedField';
 import {RouteValidatorMap} from '../../types/config/RouteValidatorMap';
+import {ZodRawShape, ZodObject} from 'zod';
 
 export class ConfigBuilder<
   TRouteTypes extends string,
   TErrorCodes extends string,
   TErrorConfigMap extends ErrorConfigMap<TErrorCodes>,
-  TRouteParamMap extends RouteValidatorMap<TRouteTypes>,
-  TRouteContextMap extends RouteValidatorMap<TRouteTypes>,
+  TRouteParamMap extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>,
+  TRouteContextMap extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>,
   TRouteConfigMap extends RouteConfigMap<TRouteTypes, TErrorCodes, TRouteParamMap, TRouteContextMap>,
   TConfig extends Config<
     TRouteTypes,
@@ -167,7 +168,7 @@ export class ConfigBuilder<
     >(this.construct, this.errorMap, defaultError);
   }
 
-  public defineRouteExtraParams<T extends RouteValidatorMap<TRouteTypes>>(
+  public defineRouteExtraParams<T extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
     map: T
   ): Pick<
     ConfigBuilder<
@@ -207,7 +208,7 @@ export class ConfigBuilder<
       undefined
     );
   }
-  public defineRouteContexts<T extends RouteValidatorMap<TRouteTypes>>(
+  public defineRouteContexts<T extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
     map: T
   ): Pick<
     ConfigBuilder<
@@ -319,14 +320,7 @@ export class ConfigBuilder<
     spec: TConfig
   ): OpenApi<TRouteTypes, TErrorCodes, TConfig>;
 
-  create(): OpenApi<TRouteTypes, TErrorCodes, Config<
-  TRouteTypes,
-  TErrorCodes,
-  ErrorConfigMap<TErrorCodes>,
-  RouteValidatorMap<TRouteTypes>,
-  RouteValidatorMap<TRouteTypes>,
-  RouteConfigMap<TRouteTypes, TErrorCodes, RouteValidatorMap<TRouteTypes>, RouteValidatorMap<TRouteTypes>>
- >>;
+  create(): OpenApi<TRouteTypes, TErrorCodes, TConfig>;
 
   create(a?: unknown, b?: unknown, conf?: unknown) {
     // custom path

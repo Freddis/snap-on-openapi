@@ -4,7 +4,6 @@ import {Route} from '../../types/Route';
 import {AnyConfig} from '../../types/config/AnyConfig';
 import {RouteExtraProps} from '../../types/config/RouteExtraProps';
 
-type SafeMerge<T> = T extends undefined ? object : T;
 export class RoutingFactory<
  TRouteTypes extends string,
  TErrorCodes extends string,
@@ -26,16 +25,16 @@ export class RoutingFactory<
     >(
       params: Route<
         TType,
-        Awaited<ReturnType<TConfig['routes'][TType]['context']>>,
+        RouteExtraProps<TConfig['routes'][TType]['context']>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
         TBodyValidator,
         TMethod
-      > & (SafeMerge<RouteExtraProps<TConfig['routes'][TType]['extraProps']>>)
+      > & (RouteExtraProps<TConfig['routes'][TType]['extraProps']>)
     ): Route<
         TType,
-        Awaited<ReturnType<TConfig['routes'][TType]['context']>>,
+        RouteExtraProps<TConfig['routes'][TType]['context']>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
@@ -44,7 +43,7 @@ export class RoutingFactory<
 
     const result : Route<
       TType,
-      Awaited<ReturnType<TConfig['routes'][TType]['context']>>,
+      RouteExtraProps<TConfig['routes'][TType]['context']>,
       TResponseValidator,
       TPathValidator,
       TQueryValidator,

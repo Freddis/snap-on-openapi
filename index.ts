@@ -20,14 +20,13 @@ export type {ErrorResponse as OpenApiErrorResponse} from './types/config/ErrorRe
 export type {RouteValidatorMap as OpenApiRouteValidatorMap} from './types/config/RouteValidatorMap';
 export type {Config as OpenApiConfig} from './types/config/Config';
 
-// types
-export type {RouteMap as OpenApiRouteMap} from './types/RouteMap';
-export type {Route as OpenApiRoute} from './types/Route';
-export type {AnyRoute as OpenApiAnyRoute} from './types/AnyRoute';
-
 //primary
 export {OpenApi} from './OpenApi';
 export type {AnyConfig as OpenApiAnyConfig} from './types/config/AnyConfig';
+export type {AnyRouteConfigMap as OpenApiAnyRouteConfigMap} from './types/config/AnyRouteConfigMap';
+export type {RouteMap as OpenApiRouteMap} from './types/RouteMap';
+export type {Route as OpenApiRoute} from './types/Route';
+export type {AnyRoute as OpenApiAnyRoute} from './types/AnyRoute';
 
 //utils
 export type {DevelopmentUtils as OpenApiDevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';

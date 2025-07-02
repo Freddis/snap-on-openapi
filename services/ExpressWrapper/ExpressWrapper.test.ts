@@ -121,19 +121,23 @@ describe('ExpressWrapper', () => {
     };
     const appMock = new ExpressAppMock();
 
-    const api = OpenApi.builder.customizeRoutes(
+    const api = OpenApi.builder
+    .customizeRoutes(
       SampleRouteType
-    ).defineRouteContexts({
+    )
+    .defineRouteContexts({
       [SampleRouteType.Public]: z.object({authorization: z.string().nullable()}),
-    }).defineRoutes({
+    })
+    .defineRoutes({
       [SampleRouteType.Public]: {
         authorization: true,
         contextFactory: (ctx) => Promise.resolve({
           authorization: ctx.request.headers.get('Authorization'),
         }),
       },
-    }).create();
-
+    })
+    .create();
+    // const x = api.getConfig().routes.Public.context;
     api.wrappers.express.createOpenApiRootRoute(appMock);
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,

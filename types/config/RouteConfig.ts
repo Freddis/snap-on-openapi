@@ -1,18 +1,18 @@
-import {TypeOf, ZodObject, ZodRawShape, ZodType} from 'zod';
+import {ZodObject, ZodRawShape} from 'zod';
 import {ContextParams} from './ContextParams';
+import {RouteExtraProps} from './RouteExtraProps';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ZodTypeOrNothing<T extends ZodType<any, any, any> | undefined> = T extends ZodType<any, any, any> ? TypeOf<T> : undefined
+
 export type RouteConfig<
   TRouteType extends string,
   TErrorCodes extends string,
-  TExtraProps extends ZodObject<ZodRawShape> | undefined,
-  TContext extends ZodObject<ZodRawShape> | undefined,
+  TExtraProps extends ZodObject<ZodRawShape> | undefined = ZodObject<ZodRawShape> | undefined,
+  TContext extends ZodObject<ZodRawShape> | undefined = ZodObject<ZodRawShape> | undefined,
  > = {
   authorization: boolean,
   extraProps: TExtraProps,
   context: TContext,
-  contextFactory: (params: ContextParams<TRouteType, TExtraProps>) => Promise<ZodTypeOrNothing<TContext>>,
+  contextFactory: (params: ContextParams<TRouteType, TExtraProps>) => Promise<RouteExtraProps<TContext, undefined>>,
   errors?: {
     [key in TErrorCodes]?: true;
   }

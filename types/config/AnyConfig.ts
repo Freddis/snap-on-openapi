@@ -6,14 +6,6 @@ import {RouteConfigMap} from './RouteConfigMap';
 export type AnyConfig<
 TRouteTypes extends string,
 TErrorCodes extends string,
-> = Config<
-  TRouteTypes,
-  TErrorCodes,
-  ErrorConfigMap<TErrorCodes>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  RouteConfigMap<TRouteTypes, TErrorCodes, any, any>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+> = Config<TRouteTypes, TErrorCodes, ErrorConfigMap<TErrorCodes>, any, any, RouteConfigMap<TRouteTypes, TErrorCodes, any, any>
  >

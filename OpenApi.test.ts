@@ -36,10 +36,12 @@ describe('OpenApi', () => {
     test('Context is working', async () => {
       const api = OpenApi.builder.customizeRoutes(
         RouteType
-      ).defineRoutes({
+      ).defineRouteContexts({
+        [RouteType.User]: z.object({currentPermission: z.string()}),
+      }).defineRoutes({
         [RouteType.User]: {
           contextFactory: async () => {
-            return {currentPeremission: 'user'};
+            return {currentPermission: 'user'};
           },
           authorization: false,
         },
@@ -53,7 +55,7 @@ describe('OpenApi', () => {
           response: z.string().openapi({description: 'response'}),
         },
         handler: async (context) => {
-          return context.currentPeremission;
+          return context.currentPermission;
         },
       });
       api.addRoutes('/', [route]);
@@ -71,6 +73,8 @@ describe('OpenApi', () => {
         [RouteType.User]: z.object({
           permission: z.enum(['read', 'write']),
         }),
+      }).defineRouteContexts({
+        [RouteType.User]: z.object({routePermission: z.string()}),
       }).defineRoutes({
         [RouteType.User]: {
           authorization: false,

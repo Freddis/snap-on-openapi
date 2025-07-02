@@ -28,9 +28,9 @@ import {DefaultErrorMap} from './services/ConfigBuilder/types/DefaultErrorMap';
 import {DefaultRouteMap} from './services/ConfigBuilder/types/DefaultRouteMap';
 import {InitialBuilder} from './types/InitialBuilder';
 import {DefaultRouteContextMap} from './services/ConfigBuilder/types/DefaultRouteContextMap';
+import {DefaultRouteParamsMap} from './services/ConfigBuilder/types/DefaultRouteParamsMap';
 
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
-
   public static builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
   public readonly factory: RoutingFactory<TRouteTypes, TErrorCodes, TConfig>;
@@ -67,6 +67,10 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
     });
     const servers = this.config.servers ?? [];
     this.servers.push(...servers);
+  }
+
+  public getConfig(): TConfig {
+    return this.config;
   }
 
   public getBasePath(): RoutePath {
@@ -260,9 +264,16 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   }
 
   protected static getBuilder() {
-    return new ConfigBuilder<SampleRouteType,
-     ErrorCode, DefaultErrorMap, DefaultRouteContextMap, DefaultRouteContextMap, DefaultRouteMap, DefaultConfig>((conf) => {
-       return new OpenApi(conf);
-     });
+    return new ConfigBuilder<
+      SampleRouteType,
+      ErrorCode,
+      DefaultErrorMap,
+      DefaultRouteParamsMap,
+      DefaultRouteContextMap,
+      DefaultRouteMap,
+      DefaultConfig
+      >((conf) => {
+        return new OpenApi(conf);
+      });
   }
 }
