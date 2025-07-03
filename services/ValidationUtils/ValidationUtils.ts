@@ -1,12 +1,34 @@
-import z, {ZodRawShape, ZodObject, ZodUnion, ZodUnionOptions} from 'zod';
+import z, {ZodRawShape, ZodType} from 'zod';
+import {stringDateTransformer} from './transformers/stringDateTransformer';
+import {stringNumberTransformer} from './transformers/stringNumberTransfromer';
 
 export class ValidationUtils {
 
-  paginatedQuery<X extends ZodRawShape>(filter: X) {
+  public readonly query = {
+    transformers: {
+      datetime: stringDateTransformer,
+      number: stringNumberTransformer,
+    },
+    validators: {
+      paginatedQuery: this.paginatedQuery,
+    },
+  };
+  public readonly body = {
+    transformers: {
+      datetime: stringDateTransformer,
+    },
+  };
+  public readonly response = {
+    validators: {
+      paginatedResponse: this.paginatedResponse,
+    },
+  };
+
+  protected paginatedQuery<X extends ZodRawShape>(filter: X) {
     return z
           .object({
-            page: z.number().optional().openapi({description: 'Page number'}),
-            pageSize: z.number().min(1).max(50).optional().default(10).openapi({
+            page: z.number().min(1).optional().default(1).openapi({description: 'Page number'}),
+            pageSize: z.number().min(1).optional().openapi({
               description: 'Number of items to display in the page.',
             }),
           })
@@ -14,7 +36,7 @@ export class ValidationUtils {
           .openapi({description: 'Pagination parameters'});
   }
 
-  paginatedResponse<T extends ZodObject<ZodRawShape>| ZodUnion<ZodUnionOptions>>(arr: T) {
+  protected paginatedResponse<T extends ZodType>(arr: T) {
     return z.object({
       items: z.array(arr).openapi({description: 'Page or items'}),
       info: z

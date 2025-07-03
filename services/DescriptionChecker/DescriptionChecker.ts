@@ -1,7 +1,15 @@
 import z, {ZodTypeAny, ZodArray, ZodObject, ZodRawShape} from 'zod';
 import {AnyRoute} from '../../types/AnyRoute';
-
+import {ValidationUtils} from '../ValidationUtils/ValidationUtils';
+interface DescriptionCheckerConfig {
+  checkValidators: boolean
+}
 export class DescriptionChecker {
+  protected utils = new ValidationUtils();
+  protected config: DescriptionCheckerConfig;
+  constructor(config: DescriptionCheckerConfig) {
+    this.config = config;
+  }
 
   public checkRoutes(routes: AnyRoute<string>[]) {
     for (const route of routes) {
@@ -28,7 +36,7 @@ export class DescriptionChecker {
       checkValidatorDescription = true,
     ) {
     const openapi = validator._def.openapi ?? validator._def.zodOpenApi?.openapi;
-    if (checkValidatorDescription && !openapi?.description) {
+    if (this.config.checkValidators && checkValidatorDescription && !openapi?.description) {
       throw new Error(
           `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field '${field}'`,
         );
@@ -40,10 +48,6 @@ export class DescriptionChecker {
       if (nonPrimitiveArray) {
         this.checkShapeDescription(route, validatorName, arr.element.shape);
       }
-    }
-    if (validator._def.typeName === 'ZodEffects') {
-      const msg = `Route '${route.method}:${route.path}': ${validatorName} on field ${field}: usage of transformers is forbidden`;
-      throw new Error(msg);
     }
     if (validator._def.typeName === 'ZodObject') {
       const obj = validator as ZodObject<ZodRawShape>;

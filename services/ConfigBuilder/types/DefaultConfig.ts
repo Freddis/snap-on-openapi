@@ -25,4 +25,5 @@ export class DefaultConfig implements Config<
     },
   } as const;
   handleError? = () => this.defaultError;
+  skipDescriptionsCheck?: boolean = false;
 }

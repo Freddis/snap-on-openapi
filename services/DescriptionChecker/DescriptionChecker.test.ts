@@ -6,7 +6,6 @@ import {Methods} from '../../enums/Methods';
 import z from 'zod';
 
 describe('DescriptionChecker', () => {
-
   test('Checks route descriptions', async ({expect}) => {
     const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
@@ -134,25 +133,4 @@ describe('DescriptionChecker', () => {
       api.addRoute(route2);
     }).not.toThrowError();
   });
-
-
-  test('Forbids the usage of transformers', async () => {
-    const api = TestUtils.createOpenApi();
-    const route = api.factory.createRoute({
-      type: SampleRouteType.Public,
-      method: Methods.POST,
-      path: '/something',
-      description: 'Testing route description',
-      validators: {
-        response: z.number().transform((x) => x.toString()).openapi({description: 'Test response'}),
-      },
-      handler: () => Promise.resolve('ss'),
-    });
-
-    // check
-    expect(() => {
-      api.addRoute(route);
-    }).toThrowError(new Error("Route 'POST:/something': responseValidator on field responseValidator: usage of transformers is forbidden"));
-  });
-
 });
