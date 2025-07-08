@@ -1,13 +1,14 @@
 import z from 'zod';
 import {OpenApi} from '../../OpenApi';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {RoutePath} from '../../types/RoutePath';
 
 export class TestUtils {
-  static createRequest(route: RoutePath, method: Methods = Methods.GET): Request {
+  static createRequest(route: RoutePath, method: Method = Method.GET, body?: object): Request {
     const request = new Request(`http://localhost${route}`, {
       method: method,
+      body: JSON.stringify(body),
     });
     return request;
   }
@@ -16,7 +17,7 @@ export class TestUtils {
     const api = OpenApi.builder.create();
     const sampleRoute = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/sample',
       description: 'Sample route',
       validators: {

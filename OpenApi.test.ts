@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {TestUtils} from './services/TestUtils/TestUtils';
-import {Methods} from './enums/Methods';
+import {Method} from './enums/Methods';
 import z from 'zod';
 import {OpenApi} from './OpenApi';
 import {SampleRouteType} from './enums/SampleRouteType';
@@ -11,7 +11,7 @@ describe('OpenApi', () => {
     const api = OpenApi.builder.create();
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/test',
       description: 'My Test Route',
       validators: {
@@ -48,7 +48,7 @@ describe('OpenApi', () => {
       }).create();
       const route = api.factory.createRoute({
         type: RouteType.User,
-        method: Methods.GET,
+        method: Method.GET,
         path: '/',
         description: 'My fantastic route',
         validators: {
@@ -60,7 +60,7 @@ describe('OpenApi', () => {
       });
       api.addRoutes('/', [route]);
 
-      const req = TestUtils.createRequest('/api', Methods.GET);
+      const req = TestUtils.createRequest('/api', Method.GET);
       const res = await api.processRootRoute(req);
       expect(res.status).toBe(200);
       expect(res.body).toBe('user');
@@ -87,7 +87,7 @@ describe('OpenApi', () => {
       }).create();
       const route = api.factory.createRoute({
         type: RouteType.User,
-        method: Methods.GET,
+        method: Method.GET,
         path: '/',
         description: 'Something long',
         validators: {
@@ -97,7 +97,7 @@ describe('OpenApi', () => {
         permission: 'read',
       });
       api.addRoutes('/', [route]);
-      const req = TestUtils.createRequest('/api', Methods.GET);
+      const req = TestUtils.createRequest('/api', Method.GET);
       const res = await api.processRootRoute(req);
       expect(res.status).toBe(200);
       expect(res.body).toBe('read');

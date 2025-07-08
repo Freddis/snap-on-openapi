@@ -3,7 +3,7 @@ import {format} from 'url';
 import {ExpressHandler} from './types/ExpressHandler';
 import {ExpressApp} from './types/ExpressApp';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
-import {OpenApi} from '../..';
+import {OpenApi} from '../../OpenApi';
 import {AnyConfig} from '../../types/config/AnyConfig';
 import {RoutePath} from '../../types/RoutePath';
 

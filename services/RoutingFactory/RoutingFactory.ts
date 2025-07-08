@@ -1,5 +1,5 @@
 import {ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import {Route} from '../../types/Route';
 import {AnyConfig} from '../../types/config/AnyConfig';
 import {RouteExtraProps} from '../../types/config/RouteExtraProps';
@@ -17,7 +17,7 @@ export class RoutingFactory<
 
   public createRoute<
       TType extends TRouteTypes,
-      TMethod extends Methods,
+      TMethod extends Method,
       TResponseValidator extends ZodFirstPartySchemaTypes,
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TPathValidator extends ZodObject<ZodRawShape> | undefined = undefined,

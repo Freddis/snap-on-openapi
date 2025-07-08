@@ -1,13 +1,13 @@
 import {ZodError} from 'zod';
 import {ErrorCode} from '../../enums/ErrorCode';
-import {ValidationLocations} from '../../enums/ValidationLocations';
+import {ValidationLocation} from '../../enums/ValidationLocations';
 import {BuiltInError} from './BuiltInError';
 
 export class ValidationError extends BuiltInError {
   private error: ZodError<unknown>;
-  private location: ValidationLocations;
+  private location: ValidationLocation;
 
-  constructor(error: ZodError<unknown>, location: ValidationLocations) {
+  constructor(error: ZodError<unknown>, location: ValidationLocation) {
     super(ErrorCode.ValidationFailed);
     this.error = error;
     this.location = location;

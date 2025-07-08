@@ -1,5 +1,5 @@
 import {z, ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
-import {Methods} from '../enums/Methods';
+import {Method} from '../enums/Methods';
 import {RoutePath} from './RoutePath';
 
 export interface Route<
@@ -9,7 +9,7 @@ export interface Route<
   TPathValidator extends ZodObject<ZodRawShape> | undefined,
   TQueryValidator extends ZodObject<ZodRawShape> | undefined,
   TBodyValidator extends ZodObject<ZodRawShape> | undefined,
-  TMethod extends Methods = Methods
+  TMethod extends Method = Method
 > {
   type: TType,
   method: TMethod,

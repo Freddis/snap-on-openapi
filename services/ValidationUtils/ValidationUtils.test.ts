@@ -1,9 +1,9 @@
 import {describe, expect, test} from 'vitest';
 import {ValidationUtils} from './ValidationUtils';
-import {OpenApi} from '../..';
+import {OpenApi} from '../../OpenApi';
 import z, {} from 'zod';
 import {SampleRouteType} from '../../enums/SampleRouteType';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import {TestUtils} from '../TestUtils/TestUtils';
 import {PaginatedResponse} from './types/PaginatedResponse';
 
@@ -19,7 +19,7 @@ describe('ValidationUtils', () => {
     test('Correctly parses numbers from query', async () => {
       const route = api.factory.createRoute({
         type: SampleRouteType.Public,
-        method: Methods.GET,
+        method: Method.GET,
         path: '/number',
         description: 'Some description',
         validators: {
@@ -41,7 +41,7 @@ describe('ValidationUtils', () => {
     test('Correctly parses Dates from query', async () => {
       const route = api.factory.createRoute({
         type: SampleRouteType.Public,
-        method: Methods.GET,
+        method: Method.GET,
         path: '/date',
         description: 'Some description',
         validators: {
@@ -66,7 +66,7 @@ describe('ValidationUtils', () => {
     test('Paginated Query', async () => {
       const route = api.factory.createRoute({
         type: SampleRouteType.Public,
-        method: Methods.GET,
+        method: Method.GET,
         path: '/paginatedQuery',
         description: 'Some description',
         validators: {
@@ -97,7 +97,7 @@ describe('ValidationUtils', () => {
     test('Paginated Response', async () => {
       const route = api.factory.createRoute({
         type: SampleRouteType.Public,
-        method: Methods.GET,
+        method: Method.GET,
         path: '/paginatedResponse',
         description: 'Some description',
         validators: {

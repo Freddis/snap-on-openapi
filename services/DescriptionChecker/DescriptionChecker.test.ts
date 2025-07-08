@@ -2,7 +2,7 @@ import {describe} from 'node:test';
 import {expect, test} from 'vitest';
 import {TestUtils} from '../TestUtils/TestUtils';
 import {SampleRouteType} from '../../enums/SampleRouteType';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import z from 'zod';
 
 describe('DescriptionChecker', () => {
@@ -10,7 +10,7 @@ describe('DescriptionChecker', () => {
     const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/something',
       description: '',
       validators: {
@@ -34,7 +34,7 @@ describe('DescriptionChecker', () => {
     const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/something',
       description: 'Testing route description',
       validators: {
@@ -58,7 +58,7 @@ describe('DescriptionChecker', () => {
     const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.POST,
+      method: Method.POST,
       path: '/something',
       description: 'Testing route description',
       validators: {
@@ -77,7 +77,7 @@ describe('DescriptionChecker', () => {
 
     const route2 = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.POST,
+      method: Method.POST,
       path: '/something',
       description: 'Testing route description',
       validators: {
@@ -97,7 +97,7 @@ describe('DescriptionChecker', () => {
     const api = TestUtils.createOpenApi();
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.POST,
+      method: Method.POST,
       path: '/something',
       description: 'Testing route description',
       validators: {
@@ -117,7 +117,7 @@ describe('DescriptionChecker', () => {
 
     const route2 = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.POST,
+      method: Method.POST,
       path: '/something',
       description: 'Testing route description',
       validators: {

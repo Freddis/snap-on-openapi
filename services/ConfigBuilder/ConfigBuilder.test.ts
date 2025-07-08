@@ -3,7 +3,7 @@ import {ErrorCode} from '../../enums/ErrorCode';
 import z from 'zod';
 import {ErrorConfigMap} from '../../types/config/ErrorConfigMap';
 import {OpenApi} from '../../OpenApi';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {TestUtils} from '../TestUtils/TestUtils';
 import {RouteConfig} from '../../types/config/RouteConfig';
@@ -21,7 +21,7 @@ describe('ConfigBuilder', () => {
     const defaultApi = OpenApi.builder.create();
     const route = defaultApi.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/route',
       description: 'Test route',
       validators: {
@@ -34,7 +34,7 @@ describe('ConfigBuilder', () => {
     const req = TestUtils.createRequest('/api/something');
     const res = await defaultApi.processRootRoute(req);
     expect(res.body, 'Should throw error since no route is present').toEqual({
-      error: 'UnknownError',
+      error: ErrorCode.NotFound,
     });
     const req2 = TestUtils.createRequest('/api/route');
     const res2 = await defaultApi.processRootRoute(req2);
@@ -47,7 +47,7 @@ describe('ConfigBuilder', () => {
     }).create();
     const route = defaultApi.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/route',
       description: 'Test route',
       validators: {
@@ -60,8 +60,8 @@ describe('ConfigBuilder', () => {
     // check
     const req = TestUtils.createRequest('/api/route');
     const res = await defaultApi.processRootRoute(req);
-    expect(res.body, 'Should have bad response on default bae path').toEqual({
-      error: 'UnknownError',
+    expect(res.body, 'Should have bad response on default base path').toEqual({
+      error: ErrorCode.NotFound,
     });
 
     const req2 = TestUtils.createRequest('/non-default-placement/route');
@@ -127,7 +127,7 @@ describe('ConfigBuilder', () => {
 
     const route = api3.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/test',
       description: 'Test Route',
       validators: {
@@ -137,7 +137,7 @@ describe('ConfigBuilder', () => {
       routeParam: 'myRouteParam',
     });
     api3.addRoutes('/', [route]);
-    const req = TestUtils.createRequest('/api/test', Methods.GET);
+    const req = TestUtils.createRequest('/api/test', Method.GET);
     const res = await api3.processRootRoute(req);
     expect(res.status).toBe(200);
     expect(res.body).toBe('myRouteParam');
@@ -212,7 +212,7 @@ describe('ConfigBuilder', () => {
     const api = OpenApi.builder.create(MyRouteTypes, ErrorCode, new AppConfig());
     const route = api.factory.createRoute({
       type: MyRouteTypes.User,
-      method: Methods.GET,
+      method: Method.GET,
       path: '/',
       description: 'Test route',
       validators: {
@@ -223,7 +223,7 @@ describe('ConfigBuilder', () => {
     });
 
     api.addRoutes('/', [route]);
-    const req = TestUtils.createRequest('/api', Methods.GET);
+    const req = TestUtils.createRequest('/api', Method.GET);
     const res = await api.processRootRoute(req);
     expect(res.status).toBe(200);
     expect(res.body).toBe('My Test Permission');

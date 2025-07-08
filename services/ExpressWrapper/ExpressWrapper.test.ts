@@ -9,7 +9,7 @@ import {ExpressHandler} from './types/ExpressHandler';
 import {ExpressRequest} from './types/ExpressRequest';
 import {ExpressResponse} from './types/ExpressResponse';
 import z from 'zod';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {OpenApi} from '../../OpenApi';
 
@@ -23,8 +23,8 @@ describe('ExpressWrapper', () => {
 
     // checking
     const errResponse = await supertest(app).get('/api');
-    expect(errResponse.status, 'Should be 500 on unknown route').toBe(500);
-    expect(errResponse.body, 'Should be error on unknown route').toEqual({error: ErrorCode.UnknownError});
+    expect(errResponse.status, 'Should be 404 on unknown route').toBe(404);
+    expect(errResponse.body, 'Should be error on unknown route').toEqual({error: ErrorCode.NotFound});
     const goodResponse = await supertest(app).get('/api/sample');
     expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
     expect(goodResponse.body, "Should be body 'success'").toEqual('success');
@@ -141,7 +141,7 @@ describe('ExpressWrapper', () => {
     api.wrappers.express.createOpenApiRootRoute(appMock);
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Methods.POST,
+      method: Method.POST,
       path: '/test-multi-headers',
       description: 'Multiheader test route',
       validators: {

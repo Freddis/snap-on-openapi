@@ -5,7 +5,7 @@ import {AnyRoute} from '../../types/AnyRoute';
 import {z, ZodObject, ZodRawShape} from 'zod';
 import {AnyConfig} from '../../types/config/AnyConfig';
 import {ErrorConfig} from '../../types/config/ErrorConfig';
-import {Methods} from '../../enums/Methods';
+import {Method} from '../../enums/Methods';
 import {Logger} from '../Logger/Logger';
 import {Server} from '../../types/config/Server';
 import {Info} from '../../types/config/Info';
@@ -144,7 +144,7 @@ export class SchemaGenerator<
         },
       ];
     }
-    if (route.method !== Methods.GET) {
+    if (route.method !== Method.GET) {
       operation.requestBody = {
         content: {
           'application/json': {schema: route.validators.body},

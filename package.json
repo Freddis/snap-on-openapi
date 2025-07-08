@@ -1,7 +1,7 @@
 {
   "name": "strap-on-openapi",
   "author": "Alex Sarychev",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "description": "Swiftly build type-checked OpenAPI applications with Zod and TypeScript",
   "type": "module",
   "license": "ISC",
@@ -15,10 +15,12 @@
     ]
   },
   "scripts": {
-    "build": "tsc && tsc-alias && rm -rf ./dist && cp -R ./assets ./dist && cp ./README.md ./dist",
+    "build": "rm -rf dist && tsc && tsc-alias && cp -R ./assets ./dist && cp ./README.md ./dist",
+    "check": "npm run test:typecheck && npm run lint && npm run test",
     "test": "vitest --run",
     "test:typecheck": "tsc  -p tsconfig.test.json",
-    "test:coverage": "npm run test:typecheck && npm run test -- --coverage && npm run test:swap-html-coverage  && vite preview --outDir html --open",
+    "test:coverage": "npm run test:coverage:html && npm run test:swap-html-coverage  ; vite preview --outDir html --open",
+    "test:coverage:html": "npm run test -- --coverage",
     "test:swap-html-coverage": "rm -R ./html/coverage/html && mv ./html/coverage/spa ./html/coverage/html",
     "lint": "eslint . --fix"
   },
@@ -34,6 +36,7 @@
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.3",
     "@types/supertest": "^6.0.3",
+    "@vitest/coverage-istanbul": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.29.0",

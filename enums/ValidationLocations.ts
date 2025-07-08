@@ -1,4 +1,4 @@
-export enum ValidationLocations {
+export enum ValidationLocation {
   Query = 'Query',
   Path = 'Path',
   Body = 'Body',
