@@ -261,6 +261,161 @@ And you can always write your own wrapper function to make it even less verbal i
 
   It's asbolutely intentional that you don't get there headers and cookies. By default you only get the minimal viable things you need in order to operate. You can always add extra information by creating different contexts for your route types.
 
+## Configuraton
+
+There are 2 ways of how you can configure Strap-on OpenAPI:
+1. Inferred config (Recommended at the beggining)
+2. Implement Config interface
+
+### Interred configuration
+```OpenApi``` comes with a builder which allows to configure openapi with a number of chained calls to various configuration methods.
+
+Some calls are optional and some are required. If you're using a modern IDE such as VSCode you can simply follow Intellisense. Each configuraton call returns a new instance of builder with specific updated methods. ```create()``` method finalizes the build process and return an OpenApi instance.
+
+Initially you have these options:
+
+1. ```customizeErrors()```
+Allows to configure different erorr types, their response shapes and allows to create the error handler that serves configured responses.
+2. ```customizeRoutes()```
+Allows to configure different route types and their settings: additional route fields, contexts, authentication methods.
+3. ```defineGlobalConfig()``` Allows to configure general settings such as the base path where API handles the requests, servers where this API is avalble and other miscelaneous settings.
+4. ```create()``` Creates an instance OpenApi.
+
+These calls depend on each other and have to be called in the same order as they've written above. You can call any of these methods, but if you called ```customizeRoutes()``` you won't be able call ```customzieErrors()```.
+
+This is done in such manner to allow Typescript compiler correctly pick up inferred types.
+
+### Global Configuraton
+```typescript
+const api = OpenApi.builder.defineGlobalConfig({
+  basePath: "/my-custom-api-path",
+  apiName: 'My Cool API',
+  servers: [
+  {
+      description: 'Local',
+      url: 'http://localhost:3000/my-custom-api-path',
+  },
+  {
+      description: 'Prod',
+      url: 'https://mydomain.com/my-custom-api-path',
+  }
+  ],
+  logLevel: OpenApiLogLevel.All,
+  skipDescriptionsCheck: false
+}).create()
+```
+If you do overrides here, don't forget to fill in servers. Documentation generators comes with playgrounds. These allow you to quickly test your API.
+
+### Route Configuration
+Let's create custom route types for authenticated users
+```typescript
+  enum ApiRouteType {
+    Public = 'Public',
+    Member = 'Member',
+  }
+
+  export const api = OpenApi.builder.customizeRoutes(
+    ApiRouteType
+  ).defineRoutes({
+      [ApiRouteType.Public]: {
+          authorization: false,
+      },
+      [ApiRouteType.Member]: {
+          authorization: true, // only affects schema
+      }
+  }).create()
+```
+After ```customizeRoutes()``` call we can define extra properties for our routes with Zod validators. Let's block access of the members to Premium areas.
+
+```typescript
+// Defining different subscription types for our members
+enum Subscription {
+    Free = 'Free',
+    Premium = 'Premium',
+}
+export const api = OpenApi.builder.customizeRoutes(
+  ApiRouteType
+).defineRouteExtraParams({
+    [ApiRouteType.Public]: undefined,
+    [ApiRouteType.Member]: z.object({
+        subscription: z.nativeEnum(Subscription)
+    })
+}).defineRoutes({
+    [ApiRouteType.Public]: {
+        authorization: false,
+    },
+    [ApiRouteType.Member]: {
+        authorization: true,
+    }
+}).create();
+
+// Now we can fill in subscription on member routes
+const route = api.factory.createRoute({
+    type: ApiRouteType.Member,
+    method: OpenApiMethod.GET,
+    path: "/premim-analytics",
+    description: "Analytics for premium memebrs",
+    validators: premiumAnalyticsValidator,
+    handler: function (context) {
+      // code that serves premium analytics to the member
+    },
+    subscription: Subscription.Permium //now we have this field here
+})
+```
+At the moment this example is incomplete. Let's use our new field in the middleware that serves the context for member routes. It's called context factory and it receives one parameter that contains information about route, request objects and some other properties.
+
+```typescript
+export const api = OpenApi.builder.customizeRoutes(
+    ApiRouteType
+).defineRouteExtraParams({
+    [ApiRouteType.Public]: undefined,
+    [ApiRouteType.Member]: z.object({
+        subscription: z.nativeEnum(Subscription)
+    })
+}).defineRouteContexts({
+    [ApiRouteType.Public]: () => Promise.resolve({}),
+    [ApiRouteType.Member]: async (ctx) => {
+        // obtaining user
+        const user: User | null = getUserFromRequest(ctx.request)
+        if(!user){
+          throw new UnauthorizedError();
+        }
+        if(ctx.route.subscription !== user.subscription){
+            throw new SubscriptionMismatchError(user);
+        }
+        // this object will be accessible in each Member route
+        return {user}
+    }
+}).defineRoutes({
+    [ApiRouteType.Public]: {
+        authorization: false,
+    },
+    [ApiRouteType.Member]: {
+        authorization: true,
+    }
+}).create();
+
+const route = api.factory.createRoute({
+    type: ApiRouteType.Member,
+    method: OpenApiMethod.GET,
+    path: "/me",
+    description: "Analytics for premium memebrs",
+    validators: userValidator,
+    handler: function (context) {
+      // the context values are visibile in the routes
+      return context.user
+    },
+    subscription: Subscription.Free
+})
+
+```
+Note that route functions do depend on each other and have to be called in this order:
+1. customizeRoutes()
+2. defineRouteExtraParams()
+3. defineRouteContexts()
+4. defineRoutes()
+
+
 
 ## Paths Math
 Routing paths are defined as a string starting with ```/```. Paths can be ```/```', ```/something```,```/something/something``` and so on. Each route has a path and each RouteMap piece has a path. It's very convenient to nest paths on each other, it allows to moving routes arround using RouteMap quckly. 
