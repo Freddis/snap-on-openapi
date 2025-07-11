@@ -2,7 +2,6 @@
 
 Bring a fully fledged typechecked api to your app in just 5 minutes.
 
-
 ## Features
 - Type checked through and through
 - Completely customizable and open for extension
@@ -11,6 +10,50 @@ Bring a fully fledged typechecked api to your app in just 5 minutes.
 - 2 documentation generators included (Swagger, Stoplight)
 - Typescript client generator included. 
 - But since you got the OpenAPI you can generate clients for any language you want.
+
+## What is Strap-On OpenAPI?
+
+OpenApi is a standard for documenting your REST APIs. Something similar to JSDoc generators but with one major difference: it uses schemas that can be stricly typed and used for code generation.
+
+This allows to quickly generate clients for your API for most languages, pretty neat right? The problem is those schemas are not very friendly to humans and it's very hard to fill them out by hand.
+
+Documentation generators for OpenAPI allow you to send sample requests to your API and conveniently publish documentation for the consumers.
+
+Now let's talk about Zod. Zod is a validation library that allows to infer types from validators. If an object passed validation with Zod, you can be sure that it contains certain fields even in compile time.
+
+Zod works so well that I simply stopped using classes for models and DTOs in my own projects: i simply infer types from validators.
+
+Now you're probably have the same idea as I had some time ago: why not combine Zod and OpenAPI and make our API absolutely typechecked both on the frontend and backend? That would be a blast! 
+
+Strap-On OpenAPI is a lightweight non-opinionated framework that allows you do exactly that. It's highly customizable and easy to use while provides fully type-checked context. You can forget about those "any" that pop here and there in your APIs.
+
+The framework doesn't have any predefined middlewares (I don't even use such concept) or excessive code. It has a few built-in errors and validators which I found helpful and even those are made with the same utilities that are available to you.
+
+Simply put Strap-On OpenAPI is the glue that ties together OpenAPI, Zod and Openapi-TS. And you are in charge of how your API is going to be shaped and that's what differs this framework from tools like ```GraphqQL``` and ```tRPC```.
+
+
+## Disclaimer
+Configuration is a bit clunky due to huge amount of inferred types. But trust me, when you learn the basics (and there is no advanced level, it's really light weight) you would be able to configure your API in just 5 minutes.
+
+Keep in mind that in a real project validators are defined in separate files and the production grade code is significantly more elegant than what you see here in the documentation.
+
+Normally, a route definition supposed to look something like this:
+``` typescript 
+export const upsertWorkouts = openApi.factory.createRoute({
+  method: OpenApiMethod.PUT,
+  type: ApiRouteType.User,
+  description: 'Updates or inserts workout for user',
+  path: '/',
+  validators: {
+    body: workoutUpsertDtoValidator
+    response: workoutUpserResponseValidator
+  },
+  handler: async (ctx) => {
+    const result = await ctx.services.models.workout.upsert(ctx.viewer.id, ctx.params.body.items);
+    return {items: result};
+  },
+});
+```
 
 ## Installation
 
@@ -306,7 +349,7 @@ const api = OpenApi.builder.defineGlobalConfig({
 ```
 If you do overrides here, don't forget to fill in servers. Documentation generators comes with playgrounds. These allow you to quickly test your API.
 
-### Route Configuration
+### Configuring Routes
 Let's create custom route types for authenticated users
 ```typescript
   enum ApiRouteType {
@@ -415,6 +458,7 @@ Note that route functions do depend on each other and have to be called in this 
 3. defineRouteContexts()
 4. defineRoutes()
 
+### Configuring Errors
 
 
 ## Paths Math
