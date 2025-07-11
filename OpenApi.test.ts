@@ -37,12 +37,11 @@ describe('OpenApi', () => {
       const api = OpenApi.builder.customizeRoutes(
         RouteType
       ).defineRouteContexts({
-        [RouteType.User]: z.object({currentPermission: z.string()}),
+        [RouteType.User]: async () => {
+          return {currentPermission: 'user'};
+        },
       }).defineRoutes({
         [RouteType.User]: {
-          contextFactory: async () => {
-            return {currentPermission: 'user'};
-          },
           authorization: false,
         },
       }).create();
@@ -74,15 +73,14 @@ describe('OpenApi', () => {
           permission: z.enum(['read', 'write']),
         }),
       }).defineRouteContexts({
-        [RouteType.User]: z.object({routePermission: z.string()}),
+        [RouteType.User]: async (ctx) => {
+          return {
+            routePermission: ctx.route.permission,
+          };
+        },
       }).defineRoutes({
         [RouteType.User]: {
           authorization: false,
-          contextFactory: async (ctx) => {
-            return {
-              routePermission: ctx.route.permission,
-            };
-          },
         },
       }).create();
       const route = api.factory.createRoute({

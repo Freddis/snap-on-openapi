@@ -8,7 +8,6 @@ export class DefaultRouteMap implements RouteConfigMap<SampleRouteType, ErrorCod
   Public = {
     authorization: false,
     extraProps: new DefaultRouteParamsMap().Public,
-    context: new DefaultRouteContextMap().Public,
-    contextFactory: async () => (undefined),
+    contextFactory: new DefaultRouteContextMap().Public,
   } as const;
 }

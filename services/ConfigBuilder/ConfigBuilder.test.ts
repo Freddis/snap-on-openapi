@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {ErrorCode} from '../../enums/ErrorCode';
-import z from 'zod';
+import z, {TypeOf} from 'zod';
 import {ErrorConfigMap} from '../../types/config/ErrorConfigMap';
 import {OpenApi} from '../../OpenApi';
 import {Method} from '../../enums/Methods';
@@ -108,11 +108,10 @@ describe('ConfigBuilder', () => {
     ).defineRouteExtraParams({
       [SampleRouteType.Public]: z.object({routeParam: z.string()}),
     }).defineRouteContexts({
-      [SampleRouteType.Public]: z.object({contextParam: z.string()}),
+      [SampleRouteType.Public]: (ctx) => Promise.resolve({contextParam: ctx.route.routeParam}),
     }).defineRoutes({
       [SampleRouteType.Public]: {
         authorization: false,
-        contextFactory: (ctx) => Promise.resolve({contextParam: ctx.route.routeParam}),
         errors: {
           ValidationFailed: true,
         },
@@ -148,6 +147,7 @@ describe('ConfigBuilder', () => {
       permission: z.string(),
     });
     type UserRouteContextValidator = typeof userRouteExtraPropsvalidator
+    type UserRouteContext = TypeOf<UserRouteContextValidator>
     class AppErrorConfig implements ErrorConfigMap<ErrorCode> {
       [ErrorCode.UnknownError] = {
         status: '500',
@@ -182,14 +182,13 @@ describe('ConfigBuilder', () => {
       Public: RouteConfig<MyRouteTypes.Public, ErrorCode, undefined, undefined> = {
         authorization: false,
         extraProps: undefined,
-        context: undefined,
         contextFactory: async () => (undefined),
       };
-      User: RouteConfig<MyRouteTypes.User, ErrorCode, UserRouteContextValidator, UserRouteContextValidator> = {
+      User: RouteConfig<MyRouteTypes.User, ErrorCode, UserRouteContextValidator, UserRouteContext> = {
         authorization: false,
         contextFactory: async (ctx) => ({permission: ctx.route.permission}),
         extraProps: userRouteExtraPropsvalidator,
-        context: userRouteExtraPropsvalidator,
+        // context: userRouteExtraPropsvalidator,
       };
     }
 

@@ -3,15 +3,16 @@ import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {ErrorResponse} from './ErrorResponse';
 import {RouteConfigMap} from './RouteConfigMap';
-import {RouteValidatorMap} from './RouteValidatorMap';
+import {RouteContextMap} from './RouteContextMap';
+import {RouteExtraPropsMap} from './RouteExtraPropsMap';
 import {Server} from './Server';
 
 export type Config<
   TRouteTypes extends string,
   TErrorCodes extends string,
   TErrorConfigMap extends ErrorConfigMap<TErrorCodes>,
-  TRouteParamMap extends RouteValidatorMap<TRouteTypes>,
-  TRouteContextMap extends RouteValidatorMap<TRouteTypes>,
+  TRouteParamMap extends RouteExtraPropsMap<TRouteTypes>,
+  TRouteContextMap extends RouteContextMap<TRouteTypes, TRouteParamMap>,
   TRouteConfigMap extends RouteConfigMap<TRouteTypes, TErrorCodes, TRouteParamMap, TRouteContextMap>,
 >
  = {

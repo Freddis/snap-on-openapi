@@ -6,15 +6,16 @@ import {AnyConfig} from '../../types/config/AnyConfig';
 import {DefaultConfig} from './types/DefaultConfig';
 import {OpenApiConstructor} from './types/OpenApiConstructor';
 import {OmitMappedField} from '../../types/config/OmitMappedField';
-import {RouteValidatorMap} from '../../types/config/RouteValidatorMap';
+import {RouteExtraPropsMap} from '../../types/config/RouteExtraPropsMap';
 import {ZodRawShape, ZodObject} from 'zod';
+import {RouteContextMap} from '../../types/config/RouteContextMap';
 
 export class ConfigBuilder<
   TRouteTypes extends string,
   TErrorCodes extends string,
   TErrorConfigMap extends ErrorConfigMap<TErrorCodes>,
-  TRouteParamMap extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>,
-  TRouteContextMap extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>,
+  TRouteParamMap extends RouteExtraPropsMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>,
+  TRouteContextMap extends RouteContextMap<TRouteTypes, TRouteParamMap>,
   TRouteConfigMap extends RouteConfigMap<TRouteTypes, TErrorCodes, TRouteParamMap, TRouteContextMap>,
   TConfig extends Config<
     TRouteTypes,
@@ -36,9 +37,9 @@ export class ConfigBuilder<
   TRouteTypes,
   TErrorCodes,
   ErrorConfigMap<TErrorCodes>,
-  RouteValidatorMap<TRouteTypes>,
-  RouteValidatorMap<TRouteTypes>,
-  RouteConfigMap<TRouteTypes, TErrorCodes, RouteValidatorMap<TRouteTypes>, RouteValidatorMap<TRouteTypes>>
+  RouteExtraPropsMap<TRouteTypes>,
+  RouteContextMap<TRouteTypes, RouteExtraPropsMap<TRouteTypes>>,
+  RouteConfigMap<TRouteTypes, TErrorCodes, RouteExtraPropsMap<TRouteTypes>, RouteContextMap<TRouteTypes, RouteExtraPropsMap<TRouteTypes>>>
  >;
   protected construct: OpenApiConstructor;
   protected errorMap?: TErrorConfigMap;
@@ -73,9 +74,9 @@ export class ConfigBuilder<
       T,
       TErrorCodes,
       TErrorConfigMap,
-      RouteValidatorMap<T>,
-      RouteValidatorMap<T>,
-      RouteConfigMap<T, TErrorCodes, RouteValidatorMap<T>, RouteValidatorMap<T>>
+      RouteExtraPropsMap<T>,
+      RouteContextMap<T, RouteExtraPropsMap<T>>,
+      RouteConfigMap<T, TErrorCodes, RouteExtraPropsMap<T>, RouteContextMap<T, RouteExtraPropsMap<T>>>
     >,
     'defineRouteExtraParams' | 'defineRouteContexts' | 'defineRoutes'
   > {
@@ -83,9 +84,9 @@ export class ConfigBuilder<
       T,
       TErrorCodes,
       TErrorConfigMap,
-      RouteValidatorMap<T>,
-      RouteValidatorMap<T>,
-      RouteConfigMap<T, TErrorCodes, RouteValidatorMap<T>, RouteValidatorMap<T>>
+      RouteExtraPropsMap<T>,
+      RouteContextMap<T, RouteExtraPropsMap<T>>,
+      RouteConfigMap<T, TErrorCodes, RouteExtraPropsMap<T>, RouteContextMap<T, RouteExtraPropsMap<T>>>
     >(this.construct, this.errorMap, this.defaultError);
   }
 
@@ -97,13 +98,13 @@ export class ConfigBuilder<
       TRouteTypes,
       T,
       ErrorConfigMap<T>,
-      RouteValidatorMap<TRouteTypes>,
-      RouteValidatorMap<TRouteTypes>,
+      RouteExtraPropsMap<TRouteTypes>,
+      RouteContextMap<TRouteTypes, RouteExtraPropsMap<TRouteTypes>>,
       RouteConfigMap<
         TRouteTypes,
         T,
-        RouteValidatorMap<TRouteTypes>,
-        RouteValidatorMap<TRouteTypes>
+        RouteExtraPropsMap<TRouteTypes>,
+        RouteContextMap<TRouteTypes, RouteExtraPropsMap<TRouteTypes>>
       >
     >,
     'defineErrors'
@@ -112,13 +113,13 @@ export class ConfigBuilder<
       TRouteTypes,
       T,
       ErrorConfigMap<T>,
-      RouteValidatorMap<TRouteTypes>,
-      RouteValidatorMap<TRouteTypes>,
+      RouteExtraPropsMap<TRouteTypes>,
+      RouteContextMap<TRouteTypes, RouteExtraPropsMap<TRouteTypes>>,
       RouteConfigMap<
         TRouteTypes,
         T,
-        RouteValidatorMap<TRouteTypes>,
-        RouteValidatorMap<TRouteTypes>
+        RouteExtraPropsMap<TRouteTypes>,
+        RouteContextMap<TRouteTypes, RouteExtraPropsMap<TRouteTypes>>
       >
     >(this.construct);
   }
@@ -168,7 +169,7 @@ export class ConfigBuilder<
     >(this.construct, this.errorMap, defaultError);
   }
 
-  public defineRouteExtraParams<T extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
+  public defineRouteExtraParams<T extends RouteExtraPropsMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
     map: T
   ): Pick<
     ConfigBuilder<
@@ -176,12 +177,12 @@ export class ConfigBuilder<
       TErrorCodes,
       TErrorConfigMap,
       T,
-      RouteValidatorMap<TRouteTypes>,
+      RouteContextMap<TRouteTypes, T>,
       RouteConfigMap<
         TRouteTypes,
         TErrorCodes,
         T,
-        RouteValidatorMap<TRouteTypes>
+        RouteContextMap<TRouteTypes, T>
       >
     >,
     'defineRoutes' | 'defineRouteContexts' | 'customizeErrors'
@@ -191,12 +192,12 @@ export class ConfigBuilder<
       TErrorCodes,
       TErrorConfigMap,
       T,
-      RouteValidatorMap<TRouteTypes>,
+      RouteContextMap<TRouteTypes, T>,
       RouteConfigMap<
         TRouteTypes,
         TErrorCodes,
         T,
-        RouteValidatorMap<TRouteTypes>
+        RouteContextMap<TRouteTypes, T>
       >
     >(
       this.construct,
@@ -208,7 +209,7 @@ export class ConfigBuilder<
       undefined
     );
   }
-  public defineRouteContexts<T extends RouteValidatorMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
+  public defineRouteContexts<T extends RouteContextMap<TRouteTypes, TRouteParamMap>>(
     map: T
   ): Pick<
     ConfigBuilder<
@@ -247,7 +248,7 @@ export class ConfigBuilder<
       TRouteContextMap
     >
   >(
-    map: OmitMappedField<T, 'extraProps' |'context'>
+    map: OmitMappedField<T, 'extraProps' |'context' | 'contextFactory'>
   ): Pick<
     ConfigBuilder<
       TRouteTypes,
@@ -328,12 +329,21 @@ export class ConfigBuilder<
       return this.construct(conf);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const routeMap: any = this.routeMap ?? undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const contextMap: any = this.routeContextMap ?? undefined;
+    if (this.routeContextMap && this.routeMap) {
+      for (const key of Object.keys(routeMap)) {
+        routeMap[key].contextFactory = contextMap[key];
+      }
+    }
     // builder path
     const def = new DefaultConfig();
     const builtConf: TConfig = {
       ...def,
       ...this.conf,
-      ...(this.routeMap ? {routes: this.routeMap} : {}),
+      ...(routeMap ? {routes: routeMap} : {}),
       ...(this.errorMap ? {errors: this.errorMap} : {}),
       ...(this.defaultError ? {defaultError: this.defaultError} : {}),
     } as TConfig;

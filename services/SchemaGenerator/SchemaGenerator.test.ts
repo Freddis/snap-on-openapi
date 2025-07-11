@@ -45,7 +45,6 @@ describe('SchemaGenerator', () => {
     ).defineRoutes({
       [SampleRouteType.Public]: {
         authorization: false,
-        contextFactory: async () => ({}),
         errors: {
           NotFound: true,
         },
@@ -94,7 +93,6 @@ describe('SchemaGenerator', () => {
     const api = OpenApi.builder.customizeRoutes(SampleRouteType).defineRoutes({
       [SampleRouteType.Public]: {
         authorization: true,
-        contextFactory: async () => ({}),
       },
     }).create();
     api.addRoute(api.factory.createRoute({

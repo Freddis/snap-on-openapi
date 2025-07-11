@@ -25,7 +25,7 @@ export class RoutingFactory<
     >(
       params: Route<
         TType,
-        RouteExtraProps<TConfig['routes'][TType]['context']>,
+        Awaited<ReturnType<TConfig['routes'][TType]['contextFactory']>>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
@@ -34,7 +34,7 @@ export class RoutingFactory<
       > & (RouteExtraProps<TConfig['routes'][TType]['extraProps']>)
     ): Route<
         TType,
-        RouteExtraProps<TConfig['routes'][TType]['context']>,
+        Awaited<ReturnType<TConfig['routes'][TType]['contextFactory']>>,
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
@@ -43,7 +43,7 @@ export class RoutingFactory<
 
     const result : Route<
       TType,
-      RouteExtraProps<TConfig['routes'][TType]['context']>,
+      Awaited<ReturnType<TConfig['routes'][TType]['contextFactory']>>,
       TResponseValidator,
       TPathValidator,
       TQueryValidator,

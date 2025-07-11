@@ -1,6 +1,7 @@
 import {SampleRouteType} from '../../../enums/SampleRouteType';
-import {RouteValidatorMap} from '../../../types/config/RouteValidatorMap';
+import {RouteContextMap} from '../../../types/config/RouteContextMap';
+import {DefaultRouteParamsMap} from './DefaultRouteParamsMap';
 
-export class DefaultRouteContextMap implements RouteValidatorMap<SampleRouteType> {
-  Public = undefined;
+export class DefaultRouteContextMap implements RouteContextMap<SampleRouteType, DefaultRouteParamsMap> {
+  Public = async () => ({});
 }

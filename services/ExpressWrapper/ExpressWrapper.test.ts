@@ -126,14 +126,13 @@ describe('ExpressWrapper', () => {
       SampleRouteType
     )
     .defineRouteContexts({
-      [SampleRouteType.Public]: z.object({authorization: z.string().nullable()}),
+      [SampleRouteType.Public]: (ctx) => Promise.resolve({
+        authorization: ctx.request.headers.get('Authorization'),
+      }),
     })
     .defineRoutes({
       [SampleRouteType.Public]: {
         authorization: true,
-        contextFactory: (ctx) => Promise.resolve({
-          authorization: ctx.request.headers.get('Authorization'),
-        }),
       },
     })
     .create();

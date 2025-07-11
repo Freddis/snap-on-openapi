@@ -17,7 +17,7 @@ export type {RouteConfig as OpenApiRouteConfig} from './types/config/RouteConfig
 export type {RouteConfigMap as OpenApiRouteConfigMap} from './types/config/RouteConfigMap';
 export type {ContextParams as OpenApiContextParams} from './types/config/ContextParams';
 export type {ErrorResponse as OpenApiErrorResponse} from './types/config/ErrorResponse';
-export type {RouteValidatorMap as OpenApiRouteValidatorMap} from './types/config/RouteValidatorMap';
+export type {RouteExtraPropsMap as OpenApiRouteExtraPropsMap} from './types/config/RouteExtraPropsMap';
 export type {Config as OpenApiConfig} from './types/config/Config';
 
 //primary

@@ -1,6 +1,6 @@
 import {SampleRouteType} from '../../../enums/SampleRouteType';
-import {RouteValidatorMap} from '../../../types/config/RouteValidatorMap';
+import {RouteExtraPropsMap} from '../../../types/config/RouteExtraPropsMap';
 
-export class DefaultRouteParamsMap implements RouteValidatorMap<SampleRouteType> {
+export class DefaultRouteParamsMap implements RouteExtraPropsMap<SampleRouteType> {
   Public = undefined;
 }
