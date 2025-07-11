@@ -3,28 +3,12 @@ import {stringDateTransformer} from './transformers/stringDateTransformer';
 import {stringNumberTransformer} from './transformers/stringNumberTransfromer';
 
 export class ValidationUtils {
-
-  public readonly query = {
-    transformers: {
-      datetime: stringDateTransformer,
-      number: stringNumberTransformer,
-    },
-    validators: {
-      paginatedQuery: this.paginatedQuery,
-    },
-  };
-  public readonly body = {
-    transformers: {
-      datetime: stringDateTransformer,
-    },
-  };
-  public readonly response = {
-    validators: {
-      paginatedResponse: this.paginatedResponse,
-    },
+  public readonly strings = {
+    datetime: stringDateTransformer,
+    number: stringNumberTransformer,
   };
 
-  protected paginatedQuery<X extends ZodRawShape>(filter: X) {
+  paginatedQuery<X extends ZodRawShape>(filter: X) {
     return z
           .object({
             page: z.number().min(1).optional().default(1).openapi({description: 'Page number'}),
@@ -36,7 +20,7 @@ export class ValidationUtils {
           .openapi({description: 'Pagination parameters'});
   }
 
-  protected paginatedResponse<T extends ZodType>(arr: T) {
+  paginatedResponse<T extends ZodType>(arr: T) {
     return z.object({
       items: z.array(arr).openapi({description: 'Page or items'}),
       info: z

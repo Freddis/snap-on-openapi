@@ -24,7 +24,7 @@ describe('ValidationUtils', () => {
         description: 'Some description',
         validators: {
           query: z.object({
-            number: utils.query.transformers.number.openapi({description: 'test'}),
+            number: utils.strings.number.openapi({description: 'test'}),
           }).openapi({description: 'response'}),
           response: z.number().openapi({description: 'test'}),
         },
@@ -46,7 +46,7 @@ describe('ValidationUtils', () => {
         description: 'Some description',
         validators: {
           query: z.object({
-            date: utils.query.transformers.datetime.openapi({description: 'test'}),
+            date: utils.strings.datetime.openapi({description: 'test'}),
           }).openapi({description: 'response'}),
           response: z.date().openapi({description: 'test'}),
         },
@@ -70,9 +70,9 @@ describe('ValidationUtils', () => {
         path: '/paginatedQuery',
         description: 'Some description',
         validators: {
-          query: utils.query.validators.paginatedQuery({
+          query: utils.paginatedQuery({
             name: z.string(),
-            date: utils.query.transformers.datetime,
+            date: utils.strings.datetime,
           }),
           response: z.object({
             name: z.string(),
@@ -101,7 +101,7 @@ describe('ValidationUtils', () => {
         path: '/paginatedResponse',
         description: 'Some description',
         validators: {
-          response: utils.response.validators.paginatedResponse(z.object({
+          response: utils.paginatedResponse(z.object({
             name: z.string(),
           })),
         },
