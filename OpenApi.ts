@@ -47,6 +47,9 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   protected constructor(config: TConfig) {
     this.config = config;
     this.logger = new Logger('OpenAPI');
+    if (config.logLevel) {
+      Logger.logLevel = config.logLevel;
+    }
     this.descriptionChecker = new DescriptionChecker({
       checkValidators: !config.skipDescriptionsCheck,
     });

@@ -19,7 +19,7 @@
     "check": "npm run test:typecheck && npm run lint && npm run test",
     "test": "vitest --run",
     "test:typecheck": "tsc  -p tsconfig.test.json",
-    "test:coverage": "npm run test:coverage:html && npm run test:swap-html-coverage  ; vite preview --outDir html --open",
+    "test:coverage": "npm run test:coverage:html ; npm run test:swap-html-coverage  ; vite preview --outDir html --open",
     "test:coverage:html": "npm run test -- --coverage",
     "test:swap-html-coverage": "rm -R ./html/coverage/html && mv ./html/coverage/spa ./html/coverage/html",
     "lint": "eslint . --fix"

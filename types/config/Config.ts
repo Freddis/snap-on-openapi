@@ -1,3 +1,4 @@
+import {LogLevel} from '../../services/Logger/types/LogLevel';
 import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {ErrorResponse} from './ErrorResponse';
@@ -19,7 +20,8 @@ export type Config<
   errors: TErrorConfigMap
   defaultError: ErrorResponse<TErrorCodes, TErrorConfigMap>
   skipDescriptionsCheck?: boolean;
-  apiName?: string,
-  servers?: Server[];
+  apiName?: string
+  servers?: Server[]
+  logLevel?: LogLevel
   handleError?: (e: unknown) => ErrorResponse<TErrorCodes, TErrorConfigMap>
 }
