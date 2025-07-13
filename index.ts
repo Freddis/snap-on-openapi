@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 //enums
 export {Method as OpenApiMethod} from './enums/Methods';
 export {ErrorCode as OpenApiErrorCode} from './enums/ErrorCode';
@@ -18,7 +19,15 @@ export type {RouteConfigMap as OpenApiRouteConfigMap} from './types/config/Route
 export type {ContextParams as OpenApiContextParams} from './types/config/ContextParams';
 export type {ErrorResponse as OpenApiErrorResponse} from './types/config/ErrorResponse';
 export type {RouteExtraPropsMap as OpenApiRouteExtraPropsMap} from './types/config/RouteExtraPropsMap';
+export type {RouteContextMap as OpenApiRouteContextMap} from './types/config/RouteContextMap';
 export type {Config as OpenApiConfig} from './types/config/Config';
+
+//defaults
+export {DefaultConfig as OpenApiDefaultConfig} from './services/ConfigBuilder/types/DefaultConfig';
+export {DefaultErrorMap as OpenApiDefaultErrorMap} from './services/ConfigBuilder/types/DefaultErrorMap';
+export {DefaultRouteContextMap as OpenApiDefaultRouteContextMap} from './services/ConfigBuilder/types/DefaultRouteContextMap';
+export {DefaultRouteMap as OpenApiDefaultRouteMap} from './services/ConfigBuilder/types/DefaultRouteMap';
+export {DefaultRouteParamsMap as OpenApiDefaultRouteParamsMap} from './services/ConfigBuilder/types/DefaultRouteParamsMap';
 
 //primary
 export {OpenApi} from './OpenApi';
@@ -37,4 +46,5 @@ export {ValidationUtils as OpenApiValidationUtils} from './services/ValidationUt
 export {TanstackStartWrapper as OpenApiTanstackStartWrapper} from './services/TanstackStartWrapper/TanstackStartWrapper';
 export {ExpressWrapper as OpenApiExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
 export {Logger as OpenApiLogger} from './services/Logger/Logger';
+export {LogLevel as OpenApiLogLevel} from './services/Logger/types/LogLevel';
 export {ConfigBuilder as OpenApiConfigBuilder} from './services/ConfigBuilder/ConfigBuilder';

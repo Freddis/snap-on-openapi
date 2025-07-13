@@ -68,7 +68,7 @@ describe('OpenApi', () => {
     test('Route props working', async () => {
       const api = OpenApi.builder.customizeRoutes(
       RouteType
-      ).defineRouteExtraParams({
+      ).defineRouteExtraProps({
         [RouteType.User]: z.object({
           permission: z.enum(['read', 'write']),
         }),

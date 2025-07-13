@@ -78,7 +78,7 @@ export class ConfigBuilder<
       RouteContextMap<T, RouteExtraPropsMap<T>>,
       RouteConfigMap<T, TErrorCodes, RouteExtraPropsMap<T>, RouteContextMap<T, RouteExtraPropsMap<T>>>
     >,
-    'defineRouteExtraParams' | 'defineRouteContexts' | 'defineRoutes'
+    'defineRouteExtraProps' | 'defineRouteContexts' | 'defineRoutes'
   > {
     return new ConfigBuilder<
       T,
@@ -169,7 +169,7 @@ export class ConfigBuilder<
     >(this.construct, this.errorMap, defaultError);
   }
 
-  public defineRouteExtraParams<T extends RouteExtraPropsMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
+  public defineRouteExtraProps<T extends RouteExtraPropsMap<TRouteTypes, ZodObject<ZodRawShape> | undefined>>(
     map: T
   ): Pick<
     ConfigBuilder<
@@ -278,7 +278,7 @@ export class ConfigBuilder<
     );
   }
   defineGlobalConfig<
-    T extends TConfig,
+    T extends Config<TRouteTypes, TErrorCodes, TErrorConfigMap, TRouteParamMap, TRouteContextMap, TRouteConfigMap>,
   >(
     conf: Omit<T, 'errors' | 'routes' | 'defaultError'>
   ): Pick<

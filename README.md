@@ -31,6 +31,8 @@ The framework doesn't have any predefined middlewares (I don't even use such con
 
 Simply put Strap-On OpenAPI is the glue that ties together OpenAPI, Zod and Openapi-TS. And you are in charge of how your API is going to be shaped and that's what differs this framework from tools like ```GraphqQL``` and ```tRPC```.
 
+You can check out some sample code here:
+https://github.com/Freddis/strap-on-openapi-samples
 
 ## Disclaimer
 Configuration is a bit clunky due to huge amount of inferred types. But trust me, when you learn the basics (and there is no advanced level, it's really light weight) you would be able to configure your API in just 5 minutes.
@@ -378,7 +380,7 @@ enum Subscription {
 }
 export const api = OpenApi.builder.customizeRoutes(
   ApiRouteType
-).defineRouteExtraParams({
+).defineRouteExtraProps({
     [ApiRouteType.Public]: undefined,
     [ApiRouteType.Member]: z.object({
         subscription: z.nativeEnum(Subscription)
@@ -410,7 +412,7 @@ At the moment this example is incomplete. Let's use our new field in the middlew
 ```typescript
 export const api = OpenApi.builder.customizeRoutes(
     ApiRouteType
-).defineRouteExtraParams({
+).defineRouteExtraProps({
     [ApiRouteType.Public]: undefined,
     [ApiRouteType.Member]: z.object({
         subscription: z.nativeEnum(Subscription)
@@ -454,7 +456,7 @@ const route = api.factory.createRoute({
 ```
 Note that route functions do depend on each other and have to be called in this order:
 1. customizeRoutes()
-2. defineRouteExtraParams()
+2. defineRouteExtraProps()
 3. defineRouteContexts()
 4. defineRoutes()
 

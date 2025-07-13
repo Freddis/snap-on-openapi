@@ -105,7 +105,7 @@ describe('ConfigBuilder', () => {
       body: {error: {code: ErrorCode.UnknownError}},
     }).customizeRoutes(
       SampleRouteType
-    ).defineRouteExtraParams({
+    ).defineRouteExtraProps({
       [SampleRouteType.Public]: z.object({routeParam: z.string()}),
     }).defineRouteContexts({
       [SampleRouteType.Public]: (ctx) => Promise.resolve({contextParam: ctx.route.routeParam}),
