@@ -47,7 +47,7 @@ export const upsertWorkouts = openApi.factory.createRoute({
   description: 'Updates or inserts workout for user',
   path: '/',
   validators: {
-    body: workoutUpsertDtoValidator
+    body: workoutUpsertDtoValidator,
     response: workoutUpserResponseValidator
   },
   handler: async (ctx) => {
@@ -308,12 +308,14 @@ And you can always write your own wrapper function to make it even less verbal i
 
 ## Configuraton
 
+Strap-On OpenApi comes with default configuration which covers basic errors and provides public route types. You can start with that but eventually you going to grow out of that.
+
 There are 2 ways of how you can configure Strap-on OpenAPI:
 1. Inferred config (Recommended at the beggining)
-2. Implement Config interface
+2. Implement OpenApiConfig interface
 
 ### Interred configuration
-```OpenApi``` comes with a builder which allows to configure openapi with a number of chained calls to various configuration methods.
+```OpenApi``` packaged with a builder which allows to configure OpenAPI with a number of chained calls to various configuration methods.
 
 Some calls are optional and some are required. If you're using a modern IDE such as VSCode you can simply follow Intellisense. Each configuraton call returns a new instance of builder with specific updated methods. ```create()``` method finalizes the build process and return an OpenApi instance.
 
