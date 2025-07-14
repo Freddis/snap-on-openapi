@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 import z, {ZodRawShape, ZodType} from 'zod';
 import {stringDateTransformer} from './transformers/stringDateTransformer';
 import {stringNumberTransformer} from './transformers/stringNumberTransfromer';

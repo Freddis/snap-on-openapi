@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 import {writeFileSync} from 'fs';
 import {stringify} from 'yaml';
 import {createDocument, ZodOpenApiObject, ZodOpenApiOperationObject, ZodOpenApiParameters, ZodOpenApiPathsObject} from 'zod-openapi';

@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 import {z} from 'zod';
 import {ErrorCode} from '../../../enums/ErrorCode';
 import {fieldErrorValidator} from '../FieldError';

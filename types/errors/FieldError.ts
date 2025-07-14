@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 import {z} from 'zod';
 
 const baseFieldErrorValidator = z.object({
