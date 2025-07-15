@@ -2,6 +2,16 @@
 
 Bring a fully fledged typechecked api to your app in just 5 minutes.
 
+[What is Strap-On OpenAPI](#what-is-strap-on-openapi)
+
+[Installation](#installation)
+
+[Quick Start](#quick-start)
+
+[Adding Routes](#adding-routes)
+
+[Configuration](#configuraton)
+
 ## Features
 - Type checked through and through
 - Completely customizable and open for extension
@@ -64,10 +74,9 @@ npm install strap-on-openapi
 ```
 
 ## Quick start
+The idea behind Strap-on OpenAPI design is that you don't need to bother yourself with configuration straight away. It is designed to be configured as you go. Fire it up, focus on your business logic, then add errors, routes and contexts as you go.
 
-The idea behind Strap-on OpenAPI design is that you don't need to bother yourself with configuration straight away. You just fire it up.
-
-Right now I created a quickstart wrapper for Tanstack Start and Express.
+Right now Strap-On OpenAPI provides quickstart wrappers for Tanstack Start and Express.
 
 ### Express
 
@@ -143,7 +152,7 @@ public createOpenApiRootRoute(expressApp: ExpressApp): void {
     // and passes it to OpenAPI instance (this.service)
     const handler: ExpressHandler = async (req, res) => {
       const emptyHeaders: Record<string, string> = {};
-      // Correcting the type for headers a little bit
+      // Correcting the type for headers a little bit, you can do it with casting to any
       const headers = Object.entries(req.headers).reduce((acc, val) => ({
         ...acc,
         ...(typeof val[1] === 'string' ? {[val[0]]: val[1]} : {}),
@@ -463,6 +472,153 @@ Note that route functions do depend on each other and have to be called in this 
 4. defineRoutes()
 
 ### Configuring Errors
+The configuration of errors starts with defining the Error Enum that contains all possible kinds of error responses you plan to use. You can go with as little as 1 error.
+
+At this stage it's important to recognize that we have 2 distinct entities here:
+1. Errors. To create an error in your service or route handler you simply need to throw an Error there. Any normal Javascript throwable object will do fine.
+2. Error responses. You can have a number of error responses for each kind of routes. 
+
+With that said, you can see that you don't have to list all possible kinds of errors in your Error Enum. Only errors that have unique type of response or HTTP status.
+
+> [!NOTE] Every error that can be thrown corresponds to one or multiple error responses. Whatever happens in during API call processing, the consumer will 
+> always receive a response. That's why Strap-On OpenAPI requires at least one error response to be defined: it has to have the default error.
+
+```customizeErrors()``` call will set you on the path of configuring errors, similar to ```customizeRoutes()``` you want to able to call ```create()``` until you provided everything that is required for API to function properly.
+
+Then we need to define responses for these errors by calling ```defineErrors()```. It's done by setting the correct HTTP statuses that have, providing descriptions and the validators for errors.
+```typescript
+export enum AppErrorType {
+  Unknown = "Unknown",
+  Unauthorized = "Unauthorized",
+  ActionError = "ActionError",
+}
+export const openApi = OpenApi.builder.customizeErrors(
+  AppErrorType
+).defineErrors({
+    [AppErrorType.Unknown]: {
+      status: "500",
+      description: "Unknown Error",
+      responseValidator: z.object({
+        code: z.literal(AppErrorType.Unknown),
+      }),
+    },
+    [AppErrorType.ActionError]: {
+      status: "400",
+      description: "Error with human readable explanation of what went wrong. Usually happens on action endpoints (i.e. login).",
+      responseValidator: z.object({
+        code: z.literal(AppErrorType.ActionError),
+        humanReadable: z.string(),
+      }),
+    },
+    [AppErrorType.Unauthorized]: {
+      status: "401",
+      description: "Unauthorized Error",
+      responseValidator: z.object({
+        code: z.literal(AppErrorType.Unauthorized),
+      }),
+    },
+  })
+```
+After this is done, you will be offered to call ```defineDefaultError()```. This call is desined to configure the error that is going to be outputted to the consumer in case if something unexpected has happened. Naturally it should correspond to one of your errors with HTTP status 500. It takes an object that consist a value of the Error enum and the response that coresponds to it's validator.
+
+```typescript
+export const openApi = OpenApi.builder.customizeErrors(
+  AppErrorType
+).defineErrors({
+  ...
+  })
+  .defineDefaultError({
+    code: AppErrorType.Unknown,
+    body: {
+      code: AppErrorType.Unknown, // this is not a duplication, it follows from the definition of response
+      // some developers may choose different shape, not related to the backend error types 
+    },
+  })
+```
+
+> [!NOTE]
+> Note that the interface of defineDefaultError forces you to use synchroneous context. It's no coincidence: errors may happen during your own error handling. This approach guarantees that whatever happened we always have a suitable response up our sleeve.
+
+The last thing we need to do is to write the errorHandler itself. Strap-On OpenAPI can't magically know with what error to respond, the best it can do is to respond with the default error response.
+
+Surprisingly enough the last call related to the error handling is ```customizeGlobalConfig()```, which already has been covered above. The reason why it's done in such manner is allow you to tweak error handling when you work with ```DefaultConfig```. The built-in error types are quite good and many people may prefer to use them for a while before actually setup own error responses.
+
+```typescript
+// adds nothing to he table, except allowing us to use instanceOf() on it
+export class UnauthorizedError extends Error {}
+export class ActionError extends Error {
+  protected code: ActionErrorCode;
+
+  constructor(code: ActionErrorCode) {
+    super();
+    this.code = code;
+  }
+
+  getCode() {
+    return this.code;
+  }
+}
+export const actionErrorDescriptions: Record<ActionErrorCode, string> = {
+  [ActionErrorCode.WrongCredentials]: "Email or Password is incorrect",
+  [ActionErrorCode.UserAlreadyExists]: "User with this email already exists",
+  [ActionErrorCode.UserPasswordNotConfirmed]: "Password confirmation is wrong",
+  [ActionErrorCode.InvalidDataInRequest]: "The data in request is missing or has wrong format",
+};
+
+export const openApi = OpenApi.builder.customizeErrors(
+    AppErrorType
+  ).defineErrors({
+   ...
+  })
+  .defineDefaultError({
+   ...
+  })
+  .defineGlobalConfig({
+    basePath: "/api",
+    handleError: (e) => {
+      // processing my custom authoirization error
+      if (e instanceof UnauthorizedError) {
+        const body: UnauthorizedErrorResponse = {
+          code: AppErrorType.Unauthorized,
+        };
+        return { code: AppErrorType.Unauthorized, body };
+      }
+      // Here I chose to respond with action error response for built-in validation error
+      if (e instanceof OpenApiValidationError) {
+        const body: ActionErrorResponse = {
+          code: AppErrorType.ActionError,
+          humanReadable:
+            actionErrorDescriptions[ActionErrorCode.InvalidDataInRequest],
+        };
+        return { code: AppErrorType.ActionError, body };
+      }
+      // Processing my custom action errors
+      if (e instanceof ActionError) {
+        const code = e.getCode();
+        const body: ActionErrorResponse = {
+          code: AppErrorType.ActionError,
+          humanReadable: actionErrorDescriptions[code],
+        };
+        return { code: AppErrorType.ActionError, body };
+      }
+      // default response
+      const defaultResponse: UnknownErrorResponse = {
+        code: AppErrorType.Unknown,
+      };
+      return { code: AppErrorType.Unknown, body: defaultResponse };
+    },
+  })
+  .create();
+```
+### Built-in Errors
+There are 3 kinds of built-in error responses:
+1. NotFound. Happens in case consumer tried to hit the route that doesn't exist. Keep in mind that this error may only happen 
+2. ValidationFailed. This happens when the data that has been sent in request or response haven't passed validation. Keep in mind that if validation failed in response, then API won't output this data to the consumer. It will be converted to Unknown Error response for security reasons.
+3. UnknownError. This is just default error that happens on expections that werent' properly handled.
+
+Under default error configuration each of those gets it's own response.
+
+All built-in errors inherit from class ```BuiltInError``` which has ``getCode()`` method to specify the error code listed above. In your ```handleError()``` you may check if the error is instance of ```OpenApiBuiltInError``` or ```OpenApiValidationError``` and shape your response accodringly.
 
 
 ## Paths Math
