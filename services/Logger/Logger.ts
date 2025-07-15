@@ -68,6 +68,28 @@ export class Logger {
     const seen = new Set();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recurse = (obj: Record<string, any>, path: string[] = []) => {
+      // This is done like that to avoid fighting with types.
+      // There is no actual need in processing arrays and objects in separate cycles.
+      if (Array.isArray(obj)) {
+        const result: unknown[] = [];
+        let index = -1;
+        for (const val of obj) {
+          index++;
+          if (typeof val === 'object' && val) {
+            if (seen.has(val)) {
+              result.push('circular->' + path.join('.'));
+              continue;
+            }
+            seen.add(val);
+            const newPath = [...path, index.toString()];
+            result.push(recurse(val, newPath));
+            continue;
+          }
+          result.push(val);
+        }
+        return result;
+      }
+
       const result: Record<string, unknown> = {};
       for (const key of Object.keys(obj)) {
         if (typeof obj[key] === 'object' && obj[key]) {
