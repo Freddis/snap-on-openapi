@@ -50,7 +50,7 @@ export class Logger {
     const msg = `${timePart}[${level}][${this.invoker}]: ${message}`;
     console.log(msg);
     if (data) {
-      console.dir(this.transformData(data));
+      console.dir(this.transformData(data), {depth: null});
     }
   }
 
