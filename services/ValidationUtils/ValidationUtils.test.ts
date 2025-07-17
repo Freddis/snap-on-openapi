@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 import {describe, expect, test} from 'vitest';
 import {ValidationUtils} from './ValidationUtils';
 import {OpenApi} from '../../OpenApi';

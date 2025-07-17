@@ -1,0 +1,17 @@
+name: Test
+run-name: ${{ github.actor }} running tests
+on: 
+  pull_request:
+    branches: [main]
+  push:
+    branches: [ main ]
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pwd
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: ls -al .
+      - run: npm install
+      - run: npm run test

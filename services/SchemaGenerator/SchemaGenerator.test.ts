@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 import {TestUtils} from '../TestUtils/TestUtils';
-import {existsSync, readFileSync, rmSync} from 'fs';
+import {existsSync, mkdirSync, readFileSync, rmSync} from 'fs';
 import z from 'zod';
 import {Method} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
@@ -13,6 +13,9 @@ import {unknownErrorResponseValidator} from '../../types/errors/responses/Unknow
 describe('SchemaGenerator', () => {
 
   beforeEach(async () => {
+    if (!existsSync('temp')) {
+      mkdirSync('temp');
+    }
     if (existsSync('temp/schema.yml')) {
       rmSync('temp/schema.yml');
     }
