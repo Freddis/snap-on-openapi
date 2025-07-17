@@ -16,6 +16,7 @@ export default defineConfig({
       ],
       reportsDirectory: 'html/coverage',
       reporter: [
+        ['text'],
         ['html-spa', {subdir: 'spa'}],
         ['html', {subdir: 'html'}],
       ],
