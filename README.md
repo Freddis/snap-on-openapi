@@ -478,7 +478,8 @@ At this stage, it's important to recognize that we have two distinct entities he
 
 With that said, you can see that you don't have to list all possible kinds of errors in your Error Enum—only errors that have a unique type of response or HTTP status.
 
-> [!NOTE] Every error that can be thrown corresponds to one or multiple error responses. Whatever happens during API call processing, the consumer will 
+> [!NOTE] 
+> Every error that can be thrown corresponds to one or multiple error responses. Whatever happens during API call processing, the consumer will 
 > always receive a response. That's why Strap-On OpenAPI requires at least one error response to be defined: it has to have the default error.
 
 The `customizeErrors()` call will set you on the path of configuring errors. Similar to `customizeRoutes()`, you won't be able to call `create()` until you have provided everything required for the API to function properly.
@@ -629,7 +630,8 @@ Routing paths are defined as strings starting with `/`. Paths can be `/`, `/some
 
 You don't have to think twice when you decide on the shape of the routes. Just put `/` if you don't want this RoutePart to have any effect.
 
->This is possible because it's a REST API and API routing is far more simplistic than website routing.
+> [!NOTE]
+> This is possible because it's a REST API and API routing is far more simplistic than website routing.
 
 There are three kinds of RoutePath used for every route:
 1. Base path, which defines the path where OpenAPI sits relative to the domain name of the application. Usually, it's something like `/api` or `/api/v1`.
