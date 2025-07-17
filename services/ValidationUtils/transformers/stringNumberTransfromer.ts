@@ -20,4 +20,4 @@ export const stringNumberTransformer = z.string().refine((input) => {
 }, 'Not a valid number string')
 .transform((x) => {
   return Number(x);
-});
+}).openapi({type: 'number'}); ;

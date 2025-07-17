@@ -13,4 +13,4 @@ export const stringDateTransformer = z.string().refine((input) => {
 }, 'Not a valid date string')
   .transform((x) => {
     return new Date(Date.parse(x));
-  });
+  }).openapi({type: 'string', format: 'date-time'});
