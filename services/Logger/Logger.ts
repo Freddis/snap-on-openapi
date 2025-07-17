@@ -89,7 +89,9 @@ export class Logger {
         }
         return result;
       }
-
+      if (obj instanceof Date) {
+        return obj;
+      }
       const result: Record<string, unknown> = {};
       for (const key of Object.keys(obj)) {
         if (typeof obj[key] === 'object' && obj[key]) {
