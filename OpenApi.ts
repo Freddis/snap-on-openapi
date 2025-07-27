@@ -181,11 +181,24 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       } catch {
         //nothing
       }
+      const reqQuery: Record<string, string | string[]> = {};
+      const queryEntries = url.searchParams.entries();
+      for (const [key, val] of queryEntries) {
+        if (reqQuery[key] !== undefined) {
+          if (Array.isArray(reqQuery[key])) {
+            reqQuery[key].push(val);
+            continue;
+          }
+          reqQuery[key] = [reqQuery[key], val];
+          continue;
+        }
+        reqQuery[key] = val;
+      }
       const req = {
         path: urlPath,
         method: originalReq.method,
         params: pathParams,
-        query: Object.fromEntries(url.searchParams.entries()),
+        query: reqQuery,
         body: body,
       };
 
