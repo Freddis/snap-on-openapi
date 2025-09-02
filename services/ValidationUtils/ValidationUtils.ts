@@ -2,11 +2,13 @@ import 'zod-openapi/extend';
 import {array, number, object, ZodObject, ZodRawShape, ZodType} from 'zod';
 import {stringDateTransformer} from './transformers/stringDateTransformer';
 import {stringNumberTransformer} from './transformers/stringNumberTransfromer';
+import {stringBooleanTransformer} from './transformers/stringBooleanTransformer';
 
 export class ValidationUtils {
   public readonly strings = {
     datetime: stringDateTransformer,
     number: stringNumberTransformer,
+    boolean: stringBooleanTransformer,
   };
 
   describeShape<TShape extends ZodRawShape>(
