@@ -124,9 +124,10 @@ describe('Logger', () => {
 
   test('Can Handle circular objects', async () => {
     const logger = new Logger('invoker');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obj: any = {myNameIs: 'Alex'};
+    type TestType = {myNameIs: 'Alex', x: number[]} & {obj?: TestType, arr?: TestType[]};
+    const obj: TestType = {myNameIs: 'Alex', x: [1, 2, 3]};
     obj.obj = obj;
+    obj.arr = [obj, obj];
     logger.info('Hello there', obj);
     consoleLogBackup(messages);
     expect(JSON.stringify(messages[messages.length - 1])).toContain('myNameIs');

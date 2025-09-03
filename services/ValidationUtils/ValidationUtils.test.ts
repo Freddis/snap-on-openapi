@@ -2,7 +2,7 @@ import 'zod-openapi/extend';
 import {describe, expect, test} from 'vitest';
 import {ValidationUtils} from './ValidationUtils';
 import {OpenApi} from '../../OpenApi';
-import z, {} from 'zod';
+import z from 'zod';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {Method} from '../../enums/Methods';
 import {TestUtils} from '../TestUtils/TestUtils';
@@ -130,6 +130,50 @@ describe('ValidationUtils', () => {
           pageSize: 15,
         },
       });
+    });
+
+    test('DescribeShape creates comprehensive descriptions for flat objects', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: false,
+      }).create();
+      const validator = z.object({
+        name: z.string(),
+        age: z.number(),
+      }).openapi({description: 'Test object'});
+      const route = api.factory.createRoute({
+        type: SampleRouteType.Public,
+        method: Method.GET,
+        path: '/test',
+        description: 'Test method',
+        validators: {
+          response: validator,
+        },
+        handler: async () => ({name: 'Alex', age: 20}),
+      });
+      // pre-check
+      expect(() => {
+        api.addRoute(route);
+      }).toThrowError(new Error("Route 'GET:/test': responseValidator missing openapi description on field 'name'"));
+
+      // test
+      const updatedValidator = api.validators.describeShape(validator, {
+        name: 'Name of the object',
+        age: 'Age of the object',
+      }).openapi({description: 'something'});
+      const route2 = api.factory.createRoute({
+        type: SampleRouteType.Public,
+        method: Method.GET,
+        path: '/test',
+        description: 'Test method',
+        validators: {
+          response: updatedValidator,
+        },
+        handler: async () => ({name: 'Alex', age: 20}),
+      });
+      expect(() => {
+        api.addRoute(route2);
+      }).not.toThrowError();
     });
 
   });

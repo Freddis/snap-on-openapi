@@ -10,6 +10,11 @@ describe('DefaultConfig', () => {
 
   describe('Error handler', () => {
 
+    test('Default Config checks', async () => {
+      const defaultApi = OpenApi.builder.create();
+      expect(defaultApi.getConfig().skipDescriptionsCheck, 'By default we check validator descriptions').toBe(false);
+    });
+
     test('Returns not found error on unkown route', async () => {
       const defaultApi = OpenApi.builder.create();
       // check

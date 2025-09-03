@@ -111,8 +111,7 @@ export class SchemaGenerator<
     }
     const httpStatusMap: Map<string, ErrorConfig<ZodObject<ZodRawShape>>[]> = new Map();
     for (const [key, error] of Object.entries(this.routeSpec.errors)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const errorConfig = error as any as ErrorConfig<ZodObject<ZodRawShape>>;
+      const errorConfig: ErrorConfig<ZodObject<ZodRawShape>> = error;
       if (!enabledErrors.includes(key)) {
         continue;
       }
@@ -122,10 +121,11 @@ export class SchemaGenerator<
     }
     for (const [code, errors] of httpStatusMap.entries()) {
       const error = errors[0];
+       /* c8 ignore start */
       if (!error) {
-        //never
-        throw new Error(`No errors found for code '${code}'`);
+        throw new Error(`No errors found for code '${code}'`); //never
       }
+       /* c8 ignore stop */
       const description = errors.map((x) => x.description).join(' or ');
       const validators = errors.map((x) => x.responseValidator) as [ZodObject<ZodRawShape>, ZodObject<ZodRawShape>];
       const schema = errors.length === 1 ? error.responseValidator : z.union(validators).openapi({unionOneOf: true});

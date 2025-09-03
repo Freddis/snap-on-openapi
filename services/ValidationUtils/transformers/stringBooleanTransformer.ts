@@ -1,3 +1,4 @@
+import 'zod-openapi/extend';
 import z from 'zod';
 
 export const stringBooleanTransformer = z.enum(['true', 'false']).transform((val) => {

@@ -13,6 +13,18 @@ export class TestUtils {
     return request;
   }
 
+  static sendRequest(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    api: OpenApi<any, any, any>,
+    route: RoutePath,
+    method: Method = Method.GET,
+    body?: object
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{status:number, body: any}> {
+    const req = this.createRequest(route, method, body);
+    return api.processRootRoute(req);
+  }
+
   static createOpenApi() {
     const api = OpenApi.builder.create();
     const sampleRoute = api.factory.createRoute({

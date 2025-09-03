@@ -41,7 +41,6 @@ export class DescriptionChecker {
           `Route '${route.method}:${route.path}': ${validatorName} missing openapi description on field '${field}'`,
         );
     }
-      // console.log(validator._def.typeName)
     if (validator._def.typeName === 'ZodArray') {
       const arr = validator as ZodArray<ZodObject<ZodRawShape>>;
       const nonPrimitiveArray = arr.element.shape !== undefined;

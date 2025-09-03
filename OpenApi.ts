@@ -166,10 +166,12 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       for (const [i, chunk] of routeParts.entries()) {
         if (chunk.startsWith('{') && chunk.endsWith('}')) {
           const name = chunk.slice(1, chunk.length - 1);
+          /* c8 ignore start */
           if (!pathParts[i]) {
             //never
             throw new Error(`Can't find '${name}' param in path`);
           }
+          /* c8 ignore stop */
           pathParams[name] = pathParts[i];
           continue;
         }
