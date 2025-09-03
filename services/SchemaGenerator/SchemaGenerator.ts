@@ -22,13 +22,13 @@ export class SchemaGenerator<
   protected servers: Server[];
   protected routeSpec: TConfig;
   constructor(
-    invoker: string,
+    logger: Logger,
     info: Info,
     spec: TConfig,
     routes: AnyRoute<TRouteTypes>[],
     servers: Server[],
   ) {
-    this.logger = new Logger(SchemaGenerator.name, invoker);
+    this.logger = logger;
     this.routes = routes;
     this.routeSpec = spec;
     this.servers = servers;

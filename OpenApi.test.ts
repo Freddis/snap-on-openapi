@@ -9,6 +9,7 @@ import {ValidationLocation} from './enums/ValidationLocations';
 import {RouteMap} from './types/RouteMap';
 import {LogLevel} from './services/Logger/types/LogLevel';
 import {DefaultConfig} from './services/ConfigBuilder/types/DefaultConfig';
+import {Logger} from './services/Logger/Logger';
 
 describe('OpenApi', () => {
 
@@ -38,7 +39,6 @@ describe('OpenApi', () => {
     let messages: unknown[] = [];
     beforeEach(() => {
       messages = [];
-      console.log('herere');
       console.log = (...args:unknown[]) => {
         messages.push(...args);
         consoleLogBackup(...args);
@@ -94,6 +94,38 @@ describe('OpenApi', () => {
       expect(response.status).toBe(200);
       expect(messages.length, 'No logs should be shown').toBe(0);
     });
+
+
+    test('Logger can be overriden', async () => {
+      class MooLogger extends Logger {
+        protected log(): void {
+          console.log('moo');
+        }
+      }
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+        logger: new MooLogger('Moo'),
+        logLevel: LogLevel.all,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/',
+        description: 'My test route',
+        validators: {
+          response: z.number(),
+        },
+        handler: async () => 1,
+      });
+      api.addRoute(route);
+      //test
+      const response = await TestUtils.sendRequest(api, '/api', Method.GET);
+      //check
+      expect(response.status).toBe(200);
+      expect(messages[0], 'Logs should be changed to "moo" lines').toBe('moo');
+    });
+
   });
 
 
@@ -429,6 +461,5 @@ describe('OpenApi', () => {
       expect(response.status, 'Default default error has status 500').toBe(500);
       expect(response.body.error, 'Default default error is UnknownError').toBe(ErrorCode.UnknownError);
     });
-
   });
 });

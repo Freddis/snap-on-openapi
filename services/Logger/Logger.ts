@@ -9,6 +9,10 @@ export class Logger {
     this.invoker = (originalInvoker ? `${originalInvoker}:` : '') + invoker;
   }
 
+  public derrive(invoker: string): Logger {
+    return new Logger(invoker, this.invoker);
+  }
+
   public info(message: string, data?: Record<string, unknown>) {
     if (Logger.logLevel === LogLevel.error) {
       return;

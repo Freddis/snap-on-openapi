@@ -46,7 +46,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
   protected constructor(config: TConfig) {
     this.config = config;
-    this.logger = new Logger('OpenAPI');
+    this.logger = config.logger ?? new Logger('OpenAPI');
     if (config.logLevel) {
       Logger.logLevel = config.logLevel;
     }
@@ -60,7 +60,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       title: config.apiName ?? 'My API',
       version: '3.1.0',
     };
-    this.schemaGenerator = new SchemaGenerator(this.logger.getInvoker(), info, this.config, this.routes, this.servers);
+    this.schemaGenerator = new SchemaGenerator(this.logger.derrive('SchemaGenerator'), info, this.config, this.routes, this.servers);
     this.wrappers = {
       tanstackStart: new TanstackStartWrapper(this),
       express: new ExpressWrapper(this),

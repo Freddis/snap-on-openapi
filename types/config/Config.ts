@@ -1,3 +1,4 @@
+import {Logger} from '../../services/Logger/Logger';
 import {LogLevel} from '../../services/Logger/types/LogLevel';
 import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
@@ -16,6 +17,7 @@ export type Config<
   TRouteConfigMap extends RouteConfigMap<TRouteTypes, TErrorCodes, TRouteParamMap, TRouteContextMap>,
 >
  = {
+  logger?: Logger;
   basePath: RoutePath
   routes: TRouteConfigMap
   errors: TErrorConfigMap
