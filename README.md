@@ -1,8 +1,8 @@
-# Strap-on OpenAPI
+# Snap-On OpenAPI
 
 Bring a fully-fledged, type-checked API to your app in just 5 minutes.
 
-[What is Strap-On OpenAPI](#what-is-strap-on-openapi)
+[What is Snap-On OpenAPI](#what-is-snap-on-openapi)
 
 [Installation](#installation)
 
@@ -21,7 +21,7 @@ Bring a fully-fledged, type-checked API to your app in just 5 minutes.
 - TypeScript client generator included
 - Since you have OpenAPI, you can generate clients for any language you want
 
-## What is Strap-On OpenAPI?
+## What is Snap-On OpenAPI?
 
 OpenAPI is a standard for documenting your REST APIs. It's similar to JSDoc generators but with one major difference: it uses schemas that can be strictly typed and used for code generation.
 
@@ -35,14 +35,14 @@ Zod works so well that I stopped using classes for models and DTOs in my own pro
 
 You might have the same idea I had some time ago: why not combine Zod and OpenAPI and make our API absolutely type-checked both on the frontend and backend? That would be a blast!
 
-Strap-On OpenAPI is a lightweight, non-opinionated framework that allows you to do exactly that. It's highly customizable and easy to use, while providing fully type-checked context. You can forget about those "any" types that pop up here and there in your APIs.
+Snap-On OpenAPI is a lightweight, non-opinionated framework that allows you to do exactly that. It's highly customizable and easy to use, while providing fully type-checked context. You can forget about those "any" types that pop up here and there in your APIs.
 
 The framework doesn't have any predefined middlewares (I don't even use such a concept) or excessive code. It has a few built-in errors and validators which I found helpful, and even those are made with the same utilities that are available to you.
 
-Simply put, Strap-On OpenAPI is the glue that ties together OpenAPI, Zod, and Openapi-TS. And you are in charge of how your API is shaped—that's what sets this framework apart from tools like `GraphQL` and `tRPC`.
+Simply put, Snap-On OpenAPI is the glue that ties together OpenAPI, Zod, and Openapi-TS. And you are in charge of how your API is shaped—that's what sets this framework apart from tools like `GraphQL` and `tRPC`.
 
 You can check out some sample code here:
-https://github.com/Freddis/strap-on-openapi-samples
+https://github.com/Freddis/snap-on-openapi-samples
 
 ## Disclaimer
 Configuration is a bit clunky due to the huge amount of inferred types. But trust me, when you learn the basics (and there is no advanced level—it's really lightweight) you will be able to configure your API in just 5 minutes.
@@ -70,13 +70,13 @@ export const upsertWorkouts = openApi.factory.createRoute({
 ## Installation
 
 ```shell
-npm install strap-on-openapi
+npm install snap-on-openapi
 ```
 
 ## Quick Start
-The idea behind Strap-On OpenAPI is that you don't need to bother with configuration right away. It is designed to be configured as you go. Fire it up, focus on your business logic, then add errors, routes, and contexts as you go.
+The idea behind Snap-On OpenAPI is that you don't need to bother with configuration right away. It is designed to be configured as you go. Fire it up, focus on your business logic, then add errors, routes, and contexts as you go.
 
-Right now, Strap-On OpenAPI provides quickstart wrappers for Tanstack Start and Express.
+Right now, Snap-On OpenAPI provides quickstart wrappers for Tanstack Start and Express.
 
 ### Express
 
@@ -183,7 +183,7 @@ As you can see, it's not rocket science to integrate it with any framework.
 
 ## Adding Routes
 
-Now let's get deeper with Strap-On OpenAPI. Let's add some hot action.
+Now let's get deeper with Snap-On OpenAPI. Let's add some hot action.
 
 We need to create a route and then add it to our OpenAPI instance. I recommend using a separate file for each route and one more file for the route map:
 ```typescript
@@ -229,7 +229,7 @@ export const getCars = openapi.factory.createRoute({
 Now let's create a route map:
 ```typescript
 // file: src/openapi/routes.ts
-import {OpenApiRouteMap, OpenApiSampleRouteType} from 'strap-on-openapi';
+import {OpenApiRouteMap, OpenApiSampleRouteType} from 'snap-on-openapi';
 import {getCars} from './getCars';
 
 export const openApiRoutes: OpenApiRouteMap<OpenApiSampleRouteType> = {
@@ -313,9 +313,9 @@ And you can always write your own wrapper function to make it even less verbose 
 
 ## Configuration
 
-Strap-On OpenAPI comes with a default configuration that covers basic errors and provides public route types. You can start with that, but eventually you will grow out of it.
+Snap-On OpenAPI comes with a default configuration that covers basic errors and provides public route types. You can start with that, but eventually you will grow out of it.
 
-There are two ways to configure Strap-On OpenAPI:
+There are two ways to configure Snap-On OpenAPI:
 1. Inferred config (recommended at the beginning)
 2. Implement OpenApiConfig interface
 
@@ -480,7 +480,7 @@ With that said, you can see that you don't have to list all possible kinds of er
 
 > [!NOTE] 
 > Every error that can be thrown corresponds to one or multiple error responses. Whatever happens during API call processing, the consumer will 
-> always receive a response. That's why Strap-On OpenAPI requires at least one error response to be defined: it has to have the default error.
+> always receive a response. That's why Snap-On OpenAPI requires at least one error response to be defined: it has to have the default error.
 
 The `customizeErrors()` call will set you on the path of configuring errors. Similar to `customizeRoutes()`, you won't be able to call `create()` until you have provided everything required for the API to function properly.
 
@@ -538,7 +538,7 @@ export const openApi = OpenApi.builder.customizeErrors(
 > [!NOTE]
 > Note that the interface of `defineDefaultError` forces you to use synchronous context. It's no coincidence: errors may happen during your own error handling. This approach guarantees that whatever happens, we always have a suitable response ready.
 
-The last thing we need to do is write the error handler itself. Strap-On OpenAPI can't magically know what error to respond with; the best it can do is respond with the default error response.
+The last thing we need to do is write the error handler itself. Snap-On OpenAPI can't magically know what error to respond with; the best it can do is respond with the default error response.
 
 Surprisingly enough, the last call related to error handling is `customizeGlobalConfig()`, which was already covered above. The reason why it's done this way is to allow you to tweak error handling when you work with `DefaultConfig`. The built-in error types are quite good, and many people may prefer to use them for a while before actually setting up their own error responses.
 
