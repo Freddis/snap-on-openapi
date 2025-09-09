@@ -98,7 +98,7 @@ describe('OpenApi', () => {
 
     test('Logger can be overriden', async () => {
       class MooLogger extends Logger {
-        protected log(): void {
+        protected override log(): void {
           console.log('moo');
         }
       }
