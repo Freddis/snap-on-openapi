@@ -26,5 +26,5 @@ export type Config<
   apiName?: string
   servers?: Server[]
   logLevel?: LogLevel
-  handleError?: (e: unknown) => ErrorResponse<TErrorCodes, TErrorConfigMap>
+  handleError?: (e: unknown, req: Request) => ErrorResponse<TErrorCodes, TErrorConfigMap>
 }

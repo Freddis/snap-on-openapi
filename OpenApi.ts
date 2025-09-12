@@ -271,14 +271,14 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       this.logger.info('Response: 200', validated.data);
       return {status: 200, body: validated.data};
     } catch (e: unknown) {
-      return this.handleError(e);
+      return this.handleError(e, originalReq);
     }
   }
 
-  protected handleError(e: unknown) {
+  protected handleError(e: unknown, req: Request) {
     this.logger.error('Error during request openAPI route handling', e);
     try {
-      const response = this.config.handleError ? this.config.handleError(e) : this.config.defaultError;
+      const response = this.config.handleError ? this.config.handleError(e, req) : this.config.defaultError;
       const status = this.config.errors[response.code].status;
       const valid = this.config.errors[response.code].responseValidator.safeParse(response.body);
       if (!valid.success) {
