@@ -2,6 +2,7 @@
 import {format} from 'url';
 import {ExpressHandler} from './types/ExpressHandler';
 import {ExpressApp} from './types/ExpressApp';
+import {ExpressRequest} from './types/ExpressRequest';
 import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 import {OpenApi} from '../../OpenApi';
 import {AnyConfig} from '../../types/config/AnyConfig';
@@ -20,6 +21,31 @@ export class ExpressWrapper<
     this.service = openApi;
     this.developmentUtils = new DevelopmentUtils();
   }
+
+  public async requestBodyToString(req: ExpressRequest): Promise<string | undefined> {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+      return undefined;
+    }
+
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+
+      req.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+
+      req.on('end', () => {
+        const bodyBuffer = Buffer.concat(chunks);
+        const bodyString = bodyBuffer.toString();
+        resolve(bodyString);
+      });
+
+      req.on('error', (error: Error) => {
+        reject(error);
+      });
+    });
+  }
+
   public createStoplightRoute(route: RoutePath, expressApp: ExpressApp): void {
     const handler: ExpressHandler = async (req, res) => {
       const body = this.developmentUtils.getStoplightHtml(this.schemaRoute);
@@ -65,10 +91,11 @@ export class ExpressWrapper<
         host: req.host,
         pathname: req.originalUrl,
       });
+      const body = await this.requestBodyToString(req);
       const openApiRequest = new Request(url, {
-        body: req.body,
         headers: headers,
         method: req.method,
+        body: body,
       });
       const result = await this.service.processRootRoute(openApiRequest);
       res.status(result.status).header('Content-Type', 'application/json').json(result.body);

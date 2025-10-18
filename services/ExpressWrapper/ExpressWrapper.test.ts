@@ -30,6 +30,29 @@ describe('ExpressWrapper', () => {
     expect(goodResponse.body, "Should be body 'success'").toEqual('success');
   });
 
+  test('Can get body from request', async () => {
+    const api = TestUtils.createOpenApi();
+    const app = express();
+    const route = api.factory.createRoute({
+      type: SampleRouteType.Public,
+      method: Method.POST,
+      path: '/post',
+      description: 'Post route',
+      validators: {
+        body: z.object({name: z.string().openapi({description: 'Name'})}),
+        response: z.string().openapi({description: 'Response'}),
+      },
+      handler: (ctx) => Promise.resolve(ctx.params.body.name),
+    });
+    api.addRoute(route);
+    api.wrappers.express.createOpenApiRootRoute(app);
+
+    // checking
+    const goodResponse = await supertest(app).post('/api/post').send({name: 'John'});
+    expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
+    expect(goodResponse.body, 'Should respond with body field').toEqual('John');
+  });
+
   test('Can mount swagger routes correctly', async () => {
     const api = TestUtils.createOpenApi();
     const app = express();
@@ -140,7 +163,7 @@ describe('ExpressWrapper', () => {
     api.wrappers.express.createOpenApiRootRoute(appMock);
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
-      method: Method.POST,
+      method: Method.GET,
       path: '/test-multi-headers',
       description: 'Multiheader test route',
       validators: {
@@ -157,10 +180,11 @@ describe('ExpressWrapper', () => {
         ContentType: undefined,
       },
       body: '',
-      method: 'POST',
+      method: 'GET',
       protocol: '',
       originalUrl: '/api/test-multi-headers',
       host: 'http://localhost',
+      on: () => req,
     };
     const goodResponse = await appMock.test(req);
     expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);

@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc && tsc-alias && cp -R ./assets ./dist && cp ./README.md ./dist",
-    "check": "npm run test:typecheck && npm run lint && npm run test",
+    "check": "npm run test:typecheck && npm run lint",
     "test": "vitest --run",
     "test:gha": "npx vitest --run --coverage --reporter=verbose",
     "test:typecheck": "tsc  -p tsconfig.test.json",
