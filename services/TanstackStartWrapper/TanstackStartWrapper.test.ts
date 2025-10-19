@@ -1,6 +1,9 @@
 import {describe, expect, test} from 'vitest';
 import {TestUtils} from '../TestUtils/TestUtils';
 import {ErrorCode} from '../../enums/ErrorCode';
+import {object, string} from 'zod';
+import {SampleRouteType} from '../../enums/SampleRouteType';
+import {Method} from '../../enums/Methods';
 describe('TanstackStartWrapper', () => {
 
   test.skip('Can mount api on tanstack start', async () => {
@@ -21,6 +24,33 @@ describe('TanstackStartWrapper', () => {
       const goodResponse = await methods.GET({request: TestUtils.createRequest('/sample')});
       expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
       expect(await goodResponse.json(), "Should be body 'success'").toEqual('success');
+    });
+
+    test('Can process headers', async () => {
+      const api = TestUtils.createOpenApi();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/test-headers',
+        description: 'My test route',
+        validators: {
+          response: string().openapi({description: 'response'}),
+          responseHeaders: object({
+            'X-Test': string().openapi({description: 'Testing Header'}),
+          }),
+        },
+        handler: () => Promise.resolve({
+          body: 'success',
+          headers: {
+            'X-Test': 'Test header',
+          },
+        }),
+      });
+      api.addRoute(route);
+      const methods = api.wrappers.tanstackStart.getOpenApiRootMethods();
+      const goodResponse = await methods.GET({request: TestUtils.createRequest('/test-headers')});
+      expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
+      expect(goodResponse.headers.get('X-Test'), 'Should contain test header').toEqual('Test header');
     });
 
     test('Can mount swagger routes correctly', async () => {

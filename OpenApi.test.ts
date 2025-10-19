@@ -277,6 +277,33 @@ describe('OpenApi', () => {
     });
   });
 
+  test('Can respond with headers', async () => {
+    const api = OpenApi.builder.create();
+    const route = api.factory.createRoute({
+      method: Method.GET,
+      type: SampleRouteType.Public,
+      path: '/',
+      description: 'My test route',
+      validators: {
+        response: z.string().openapi({description: 'response'}),
+        responseHeaders: z.object({
+          Custom: z.string().openapi({description: 'Authorization header'}),
+        }),
+      },
+      handler: async () => ({
+        body: '1',
+        headers: {Custom: 'Custom Header'},
+      }),
+    });
+    api.addRoute(route);
+    const req = TestUtils.createRequest('/api', Method.GET);
+    const res = await api.processRootRoute(req);
+    expect(res.status).toBe(200);
+    expect(res.body).toBe('1');
+    expect(res.headers.Custom).toBe('Custom Header');
+  });
+
+
   describe('Route params', async () => {
     test('Can process arrays in query', async () => {
       const api = OpenApi.builder.defineGlobalConfig({

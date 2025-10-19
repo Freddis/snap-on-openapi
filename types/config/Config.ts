@@ -1,5 +1,6 @@
 import {Logger} from '../../services/Logger/Logger';
 import {LogLevel} from '../../services/Logger/types/LogLevel';
+import {AnyRoute} from '../AnyRoute';
 import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {ErrorResponse} from './ErrorResponse';
@@ -27,4 +28,8 @@ export type Config<
   servers?: Server[]
   logLevel?: LogLevel
   handleError?: (e: unknown, req: Request) => ErrorResponse<TErrorCodes, TErrorConfigMap>
+  middleware?: <T extends TRouteTypes>(
+    route: AnyRoute<T>,
+    ctx: Awaited<ReturnType<TRouteContextMap[T]>>
+  ) => Promise<{body?: unknown, status?: number, headers?: Record<string, string>}>
 }

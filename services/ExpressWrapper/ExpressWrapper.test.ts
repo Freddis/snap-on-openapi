@@ -53,6 +53,36 @@ describe('ExpressWrapper', () => {
     expect(goodResponse.body, 'Should respond with body field').toEqual('John');
   });
 
+  test('Can responsd with headers', async () => {
+    const api = TestUtils.createOpenApi();
+    const app = express();
+    const route = api.factory.createRoute({
+      method: Method.GET,
+      type: SampleRouteType.Public,
+      path: '/test-headers',
+      description: 'My test route',
+      validators: {
+        response: z.string().openapi({description: 'response'}),
+        responseHeaders: z.object({
+          'X-Test': z.string().openapi({description: 'Testing Header'}),
+        }),
+      },
+      handler: () => Promise.resolve({
+        body: 'success',
+        headers: {
+          'X-Test': 'Test header',
+        },
+      }),
+    });
+    api.addRoute(route);
+    api.wrappers.express.createOpenApiRootRoute(app);
+
+    // checking
+    const goodResponse = await supertest(app).get('/api/test-headers');
+    expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
+    expect(goodResponse.headers['x-test'], 'Should contain test header').toEqual('Test header');
+  });
+
   test('Can mount swagger routes correctly', async () => {
     const api = TestUtils.createOpenApi();
     const app = express();

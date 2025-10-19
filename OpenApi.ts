@@ -150,7 +150,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
   async processRootRoute(
     originalReq: Request
-  ): Promise<{status: number; body: unknown}> {
+  ): Promise<{status: number; body: unknown, headers: Record<string, string>}> {
     try {
       const url = new URL(originalReq.url);
       const urlPath = url.pathname.replace(this.getBasePath(), '');
@@ -264,12 +264,17 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
           }});
       }
 
-      const validated = route.validators.response.safeParse(response);
+      const finalResponse = route.validators.responseHeaders ? response : {body: response, headers: {}};
+      const finalResponseValidator = z.object({
+        body: route.validators.response,
+        headers: route.validators.responseHeaders?.strict() ?? z.object({}),
+      });
+      const validated = finalResponseValidator.safeParse(finalResponse);
       if (!validated.success) {
         throw new ValidationError(validated.error, ValidationLocation.Response);
       }
       this.logger.info('Response: 200', validated.data);
-      return {status: 200, body: validated.data};
+      return {status: 200, body: validated.data.body, headers: validated.data.headers};
     } catch (e: unknown) {
       return this.handleError(e, originalReq);
     }
@@ -285,11 +290,11 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         throw new Error("Error response haven't passed validation");
       }
       this.logger.info(`Response: '${status}'`, response.body);
-      return {status: Number(status), body: response.body};
+      return {status: Number(status), body: response.body, headers: {}};
     } catch (e: unknown) {
       this.logger.error('Error during error handling', e);
       const status = this.config.errors[this.config.defaultError.code].status;
-      return {status: Number(status), body: this.config.defaultError.body};
+      return {status: Number(status), body: this.config.defaultError.body, headers: {}};
     }
   }
 

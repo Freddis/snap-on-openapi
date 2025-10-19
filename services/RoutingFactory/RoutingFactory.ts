@@ -22,6 +22,7 @@ export class RoutingFactory<
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TPathValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TBodyValidator extends ZodObject<ZodRawShape> | undefined = undefined,
+      TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined = undefined,
     >(
       params: Route<
         TType,
@@ -30,6 +31,7 @@ export class RoutingFactory<
         TPathValidator,
         TQueryValidator,
         TBodyValidator,
+        TResponseHeadersValidator,
         TMethod
       > & (RouteExtraProps<TConfig['routes'][TType]['extraProps']>)
     ): Route<
@@ -38,7 +40,8 @@ export class RoutingFactory<
         TResponseValidator,
         TPathValidator,
         TQueryValidator,
-        TBodyValidator
+        TBodyValidator,
+        TResponseHeadersValidator
       > {
 
     const result : Route<
@@ -48,6 +51,7 @@ export class RoutingFactory<
       TPathValidator,
       TQueryValidator,
       TBodyValidator,
+      TResponseHeadersValidator,
       TMethod
     > = {
       ...params,
@@ -59,6 +63,7 @@ export class RoutingFactory<
         query: params.validators.query,
         path: params.validators.path,
         response: params.validators.response,
+        responseHeaders: params.validators.responseHeaders,
         body: params.validators.body,
       },
       handler: params.handler,

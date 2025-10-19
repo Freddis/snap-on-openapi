@@ -67,6 +67,7 @@ export class TanstackStartWrapper<
       const response = await this.service.processRootRoute(ctx.request);
       const res = new Response(JSON.stringify(response.body), {
         status: response.status,
+        headers: response.headers,
       });
       return res;
     };

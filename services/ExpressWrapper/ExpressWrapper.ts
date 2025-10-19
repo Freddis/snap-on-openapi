@@ -98,7 +98,12 @@ export class ExpressWrapper<
         body: body,
       });
       const result = await this.service.processRootRoute(openApiRequest);
-      res.status(result.status).header('Content-Type', 'application/json').json(result.body);
+      res.status(result.status);
+      res.header('Content-Type', 'application/json');
+      for (const header of Object.entries(result.headers)) {
+        res.header(header[0], header[1]);
+      }
+      res.json(result.body);
     };
     const regex = new RegExp(`${route}.*`);
     expressApp.get(regex, handler);
