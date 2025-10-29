@@ -58,7 +58,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
     this.basePath = config.basePath;
     const info: Info = {
       title: config.apiName ?? 'My API',
-      version: '3.1.0',
+      version: config.apiVersion ?? '1.0.0',
     };
     this.schemaGenerator = new SchemaGenerator(this.logger.derrive('SchemaGenerator'), info, this.config, this.routes, this.servers);
     this.wrappers = {
