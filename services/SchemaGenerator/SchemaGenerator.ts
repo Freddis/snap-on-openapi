@@ -115,9 +115,10 @@ export class SchemaGenerator<
     const operation: ZodOpenApiOperationObject = {
       requestParams: requestParams,
       description: route.description,
+      tags: route.tags,
       responses: {
         200: {
-          description: 'OK',
+          description: this.routeSpec.generator?.goodResponseDescription ?? 'Good Response',
           content: route.validators.response ? content : undefined,
         },
       },

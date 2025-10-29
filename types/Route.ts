@@ -2,24 +2,27 @@ import {z, ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
 import {Method} from '../enums/Methods';
 import {RoutePath} from './RoutePath';
 
-type BodyHandlerResponse<T extends ZodFirstPartySchemaTypes> = Promise<z.infer<T>>
-type FullHandlerRespnse<T extends ZodFirstPartySchemaTypes, THeaders extends ZodObject<ZodRawShape>> = Promise<{
-  body: z.infer<T>,
-  headers: z.infer<THeaders>
+type BodyHandlerResponse<
+  T extends ZodFirstPartySchemaTypes | undefined = undefined
+> = Promise<Exclude<T, undefined> extends undefined ? object : z.infer<Exclude<T, undefined>>>
+type FullHandlerRespnse<T extends ZodFirstPartySchemaTypes | undefined, THeaders extends ZodObject<ZodRawShape> | undefined> = Promise<{
+  body: z.infer<Exclude<T, undefined>>,
+  headers: z.infer<Exclude<THeaders, undefined>>
 }>
-type HandlerResponse<T extends ZodFirstPartySchemaTypes, TH extends ZodObject<ZodRawShape> | undefined> =
+type HandlerResponse<T extends ZodFirstPartySchemaTypes | undefined, TH extends ZodObject<ZodRawShape> | undefined> =
 TH extends undefined ? BodyHandlerResponse<T> : FullHandlerRespnse<T, Exclude<TH, undefined>>
 
 export interface Route<
   TType extends string,
   TContext extends object,
-  TResponseValidator extends ZodFirstPartySchemaTypes,
+  TResponseValidator extends ZodFirstPartySchemaTypes | undefined,
   TPathValidator extends ZodObject<ZodRawShape> | undefined,
   TQueryValidator extends ZodObject<ZodRawShape> | undefined,
   TBodyValidator extends ZodObject<ZodRawShape> | undefined,
   TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined,
   TMethod extends Method = Method
 > {
+  tags?: string[];
   type: TType,
   method: TMethod,
   path: RoutePath,

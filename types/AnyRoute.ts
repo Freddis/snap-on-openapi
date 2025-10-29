@@ -6,7 +6,7 @@ Route<
     TRouteType,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     any,
-    ZodFirstPartySchemaTypes,
+    ZodFirstPartySchemaTypes | undefined,
     ZodObject<ZodRawShape> | undefined,
     ZodObject<ZodRawShape> | undefined,
     ZodObject<ZodRawShape> | undefined,

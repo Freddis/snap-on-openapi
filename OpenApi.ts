@@ -266,7 +266,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
       const finalResponse = route.validators.responseHeaders ? response : {body: response, headers: {}};
       const finalResponseValidator = z.object({
-        body: route.validators.response,
+        body: route.validators.response ?? z.undefined(),
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
       });
       const validated = finalResponseValidator.safeParse(finalResponse);

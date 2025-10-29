@@ -24,6 +24,7 @@ export type Config<
   routes: TRouteConfigMap
   generator?: {
     openApiVersion?: ZodOpenApiVersion
+    goodResponseDescription?: string,
     generateErrors?: boolean;
     requestMediaTypes?: string[]
     responseMediaTypes?: string[]
