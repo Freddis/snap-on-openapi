@@ -19,6 +19,9 @@ describe('SchemaGenerator', () => {
     if (existsSync('temp/schema.yml')) {
       rmSync('temp/schema.yml');
     }
+    if (existsSync('temp/schema.json')) {
+      rmSync('temp/schema.json');
+    }
   });
 
   test('Can create error unions on same status', async () => {
@@ -140,12 +143,20 @@ describe('SchemaGenerator', () => {
     expect(yml).toContain(expectedPartial);
   });
 
-  test('Can save schema to file', () => {
+  test('Can save yaml schema to file', () => {
     const api = TestUtils.createOpenApi();
     expect(existsSync('/temp/schema.yml')).toBe(false);
     api.schemaGenerator.saveYaml('temp/schema.yml');
     readFileSync('temp/schema.yml');
     expect(existsSync('temp/schema.yml')).toBe(true);
+  });
+
+  test('Can save json schema to file', () => {
+    const api = TestUtils.createOpenApi();
+    expect(existsSync('/temp/schema.json')).toBe(false);
+    api.schemaGenerator.saveJson('temp/schema.json');
+    readFileSync('temp/schema.json');
+    expect(existsSync('temp/schema.json')).toBe(true);
   });
 
 });

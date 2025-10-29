@@ -37,13 +37,27 @@ export class SchemaGenerator<
 
   public getYaml(): string {
     const document = this.createDocument();
+    this.logger.info('Generating YAML for Open API');
     const yaml = stringify(document, {aliasDuplicateObjects: false});
     return yaml;
   }
 
+  public getJson(): string {
+    const document = this.createDocument();
+    this.logger.info('Generating JSON for Open API');
+    const json = JSON.stringify(document, null, 2);
+    return json;
+  }
+
+  public saveJson(path: string) {
+    const json = this.getJson();
+    this.logger.info(`Saving JSON to ${path}`);
+    writeFileSync(path, json);
+  }
+
   public saveYaml(path: string) {
-    this.logger.info('Generating YAML for Open API');
     const yaml = this.getYaml();
+    this.logger.info(`Saving YAML to ${path}`);
     writeFileSync(path, yaml);
   }
 
