@@ -63,7 +63,7 @@ export class SchemaGenerator<
 
   protected createDocument(): ReturnType<typeof createDocument> {
     const openApi: ZodOpenApiObject = {
-      openapi: '3.1.0',
+      openapi: this.routeSpec.generator?.openApiVersion ?? '3.1.0',
       info: this.info,
       components: {
         securitySchemes: {
@@ -107,15 +107,18 @@ export class SchemaGenerator<
       path: route.validators.path,
     };
 
+    const mediaTypes = this.routeSpec.generator?.responseMediaTypes ?? ['application/json'];
+    const content = mediaTypes.reduce((acc, mediaType) => ({
+      ...acc,
+      [mediaType]: {schema: route.validators.response},
+    }), {});
     const operation: ZodOpenApiOperationObject = {
       requestParams: requestParams,
       description: route.description,
       responses: {
         200: {
-          description: 'Good Response',
-          content: {
-            'application/json': {schema: route.validators.response},
-          },
+          description: 'OK',
+          content: route.validators.response ? content : undefined,
         },
       },
     };
@@ -133,24 +136,27 @@ export class SchemaGenerator<
       errors.push(errorConfig);
       httpStatusMap.set(errorConfig.status, errors);
     }
-    for (const [code, errors] of httpStatusMap.entries()) {
-      const error = errors[0];
+    const shouldGenerateErrors = this.routeSpec.generator?.generateErrors ?? true;
+    if (shouldGenerateErrors) {
+      for (const [code, errors] of httpStatusMap.entries()) {
+        const error = errors[0];
        /* c8 ignore start */
-      if (!error) {
-        throw new Error(`No errors found for code '${code}'`); //never
-      }
+        if (!error) {
+          throw new Error(`No errors found for code '${code}'`); //never
+        }
        /* c8 ignore stop */
-      const description = errors.map((x) => x.description).join(' or ');
-      const validators = errors.map((x) => x.responseValidator) as [ZodObject<ZodRawShape>, ZodObject<ZodRawShape>];
-      const schema = errors.length === 1 ? error.responseValidator : z.union(validators).openapi({unionOneOf: true});
-      operation.responses[error.status] = {
-        description: description,
-        content: {
-          'application/json': {
-            schema: schema,
+        const description = errors.map((x) => x.description).join(' or ');
+        const validators = errors.map((x) => x.responseValidator) as [ZodObject<ZodRawShape>, ZodObject<ZodRawShape>];
+        const schema = errors.length === 1 ? error.responseValidator : z.union(validators).openapi({unionOneOf: true});
+        operation.responses[error.status] = {
+          description: description,
+          content: {
+            'application/json': {
+              schema: schema,
+            },
           },
-        },
-      };
+        };
+      }
     }
     if (this.routeSpec.routes[route.type].authorization) {
       operation.security = [
@@ -159,11 +165,14 @@ export class SchemaGenerator<
         },
       ];
     }
-    if (route.method !== Method.GET) {
+    if (route.method !== Method.GET && route.validators.body) {
+      const mediaTypes = this.routeSpec.generator?.requestMediaTypes ?? ['application/json'];
+      const content = mediaTypes.reduce((acc, mediaType) => ({
+        ...acc,
+        [mediaType]: {schema: route.validators.body},
+      }), {});
       operation.requestBody = {
-        content: {
-          'application/json': {schema: route.validators.body},
-        },
+        content,
       };
     }
     return operation;

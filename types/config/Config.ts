@@ -1,3 +1,4 @@
+import {ZodOpenApiVersion} from 'zod-openapi';
 import {Logger} from '../../services/Logger/Logger';
 import {LogLevel} from '../../services/Logger/types/LogLevel';
 import {AnyRoute} from '../AnyRoute';
@@ -21,10 +22,17 @@ export type Config<
   logger?: Logger;
   basePath: RoutePath
   routes: TRouteConfigMap
+  generator?: {
+    openApiVersion?: ZodOpenApiVersion
+    generateErrors?: boolean;
+    requestMediaTypes?: string[]
+    responseMediaTypes?: string[]
+  }
   errors: TErrorConfigMap
   defaultError: ErrorResponse<TErrorCodes, TErrorConfigMap>
   skipDescriptionsCheck?: boolean;
   apiName?: string
+  apiVersion?: string
   servers?: Server[]
   logLevel?: LogLevel
   handleError?: (e: unknown, req: Request) => ErrorResponse<TErrorCodes, TErrorConfigMap>
