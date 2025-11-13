@@ -1,12 +1,14 @@
 import 'zod-openapi/extend';
 import {array, number, object, ZodObject, ZodRawShape, ZodType} from 'zod';
-import {stringDateTransformer} from './transformers/stringDateTransformer';
 import {stringNumberTransformer} from './transformers/stringNumberTransfromer';
 import {stringBooleanTransformer} from './transformers/stringBooleanTransformer';
+import {stringDateTimeTransformer} from './transformers/stringDateTimeTransformer';
+import {stringDateTransformer} from './transformers/stringDateTransformer';
 
 export class ValidationUtils {
   public readonly strings = {
-    datetime: stringDateTransformer,
+    datetime: stringDateTimeTransformer,
+    date: stringDateTransformer,
     number: stringNumberTransformer,
     boolean: stringBooleanTransformer,
   };

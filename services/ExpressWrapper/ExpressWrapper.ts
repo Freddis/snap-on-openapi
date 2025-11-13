@@ -1,5 +1,4 @@
 
-import {format} from 'url';
 import {ExpressHandler} from './types/ExpressHandler';
 import {ExpressApp} from './types/ExpressApp';
 import {ExpressRequest} from './types/ExpressRequest';
@@ -7,6 +6,7 @@ import {DevelopmentUtils} from '../DevelopmentUtils/DevelopmentUtils';
 import {OpenApi} from '../../OpenApi';
 import {AnyConfig} from '../../types/config/AnyConfig';
 import {RoutePath} from '../../types/RoutePath';
+import {format, parse} from 'url';
 
 export class ExpressWrapper<
  TRouteTypes extends string,
@@ -20,30 +20,6 @@ export class ExpressWrapper<
   constructor(openApi: OpenApi<TRouteTypes, TErrorCodes, TConfig>) {
     this.service = openApi;
     this.developmentUtils = new DevelopmentUtils();
-  }
-
-  public async requestBodyToString(req: ExpressRequest): Promise<string | undefined> {
-    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-      return undefined;
-    }
-
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-
-      req.on('data', (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
-
-      req.on('end', () => {
-        const bodyBuffer = Buffer.concat(chunks);
-        const bodyString = bodyBuffer.toString();
-        resolve(bodyString);
-      });
-
-      req.on('error', (error: Error) => {
-        reject(error);
-      });
-    });
   }
 
   public createStoplightRoute(route: RoutePath, expressApp: ExpressApp): void {
@@ -74,30 +50,9 @@ export class ExpressWrapper<
 
   public createOpenApiRootRoute(expressApp: ExpressApp): void {
     const route = this.service.getBasePath();
-    const headerToStr = (header: string | string[]) => {
-      if (Array.isArray(header)) {
-        return header.join(',');
-      }
-      return header;
-    };
     const handler: ExpressHandler = async (req, res) => {
-      const emptyHeaders: Record<string, string> = {};
-      const headers = Object.entries(req.headers).reduce((acc, val) => ({
-        ...acc,
-        ...(typeof val[1] !== 'undefined' ? {[val[0]]: headerToStr(val[1])} : {}),
-      }), emptyHeaders);
-      const url = format({
-        protocol: req.protocol,
-        host: req.host,
-        pathname: req.originalUrl,
-      });
-      const body = await this.requestBodyToString(req);
-      const openApiRequest = new Request(url, {
-        headers: headers,
-        method: req.method,
-        body: body,
-      });
-      const result = await this.service.processRootRoute(openApiRequest);
+      const request = await this.covertExpressRequestToRequest(req);
+      const result = await this.service.processRootRoute(request);
       res.status(result.status);
       res.header('Content-Type', 'application/json');
       for (const header of Object.entries(result.headers)) {
@@ -111,5 +66,56 @@ export class ExpressWrapper<
     expressApp.patch(regex, handler);
     expressApp.delete(regex, handler);
     expressApp.put(regex, handler);
+  }
+
+  protected async covertExpressRequestToRequest(req: ExpressRequest): Promise<Request> {
+    const headerToStr = (header: string | string[]) => {
+      if (Array.isArray(header)) {
+        return header.join(',');
+      }
+      return header;
+    };
+    const emptyHeaders: Record<string, string> = {};
+    const headers = Object.entries(req.headers).reduce((acc, val) => ({
+      ...acc,
+      ...(typeof val[1] !== 'undefined' ? {[val[0]]: headerToStr(val[1])} : {}),
+    }), emptyHeaders);
+    const body = await this.requestBodyToString(req);
+    const parsedUrl = parse(req.originalUrl, true);
+    const url = format({
+      ...parsedUrl,
+      host: req.host,
+      protocol: req.protocol,
+    });
+    const openApiRequest = new Request(url, {
+      headers: headers,
+      method: req.method,
+      body: body,
+    });
+    return openApiRequest;
+  }
+
+  protected async requestBodyToString(req: ExpressRequest): Promise<string | undefined> {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+      return undefined;
+    }
+
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+
+      req.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+
+      req.on('end', () => {
+        const bodyBuffer = Buffer.concat(chunks);
+        const bodyString = bodyBuffer.toString();
+        resolve(bodyString);
+      });
+
+      req.on('error', (error: Error) => {
+        reject(error);
+      });
+    });
   }
 }

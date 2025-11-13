@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 import {TestUtils} from './services/TestUtils/TestUtils';
 import {Method} from './enums/Methods';
-import z from 'zod';
+import z, {number, object, string} from 'zod';
 import {OpenApi} from './OpenApi';
 import {SampleRouteType} from './enums/SampleRouteType';
 import {ErrorCode} from './enums/ErrorCode';
@@ -305,6 +305,64 @@ describe('OpenApi', () => {
 
 
   describe('Route params', async () => {
+
+    test('Can process path params', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/{q}',
+        description: 'My test route',
+        validators: {
+          path: z.object({
+            q: api.validators.strings.number,
+          }),
+          response: z.number(),
+        },
+        handler: async (ctx) => ctx.params.path.q,
+      });
+      api.addRoute(route);
+      //test
+      const response = await TestUtils.sendRequest(api, '/api/32', Method.GET);
+      //check
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(32);
+    });
+
+    test('Can process multiple path params', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/{name}/{age}',
+        description: 'My test route',
+        validators: {
+          path: z.object({
+            name: string(),
+            age: api.validators.strings.number,
+          }),
+          response: object({
+            name: string(),
+            age: number(),
+          }),
+        },
+        handler: async (ctx) => ctx.params.path,
+      });
+      api.addRoute(route);
+      //test
+      const response = await TestUtils.sendRequest(api, '/api/alex/32', Method.GET);
+      //check
+      expect(response.status).toBe(200);
+      expect(response.body.name).toEqual('alex');
+      expect(response.body.age).toEqual(32);
+    });
+
     test('Can process arrays in query', async () => {
       const api = OpenApi.builder.defineGlobalConfig({
         basePath: '/api',

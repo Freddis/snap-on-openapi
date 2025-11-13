@@ -9,6 +9,6 @@ Route<
     ZodFirstPartySchemaTypes | undefined,
     ZodObject<ZodRawShape> | undefined,
     ZodObject<ZodRawShape> | undefined,
-    ZodObject<ZodRawShape> | undefined,
+    ZodFirstPartySchemaTypes | undefined,
     ZodObject<ZodRawShape> | undefined
 >

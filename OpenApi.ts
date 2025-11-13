@@ -124,12 +124,12 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   }
   protected getRouteForPath(path: string, method: string): AnyRoute<TRouteTypes> | null {
     const fittingRoutes: AnyRoute<TRouteTypes>[] = [];
+    const pathParts = path.split('/').filter((x) => x !== '');
     outer:
     for (const route of this.routes) {
       if (route.method === method) {
         fittingRoutes.push(route);
         const routeParts = route.path.split('/').filter((x) => x !== '');
-        const pathParts = path.split('/').filter((x) => x !== '');
         if (routeParts.length !== pathParts.length) {
           continue;
         }
@@ -153,7 +153,9 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   ): Promise<{status: number; body: unknown, headers: Record<string, string>}> {
     try {
       const url = new URL(originalReq.url);
-      const urlPath = url.pathname.replace(this.getBasePath(), '');
+      //routes should start with / and if the basepath is also / we need to collapse it, otherwise it's gonna be cut from the route
+      const basePath = this.getBasePath() === '/' ? '' : this.getBasePath();
+      const urlPath = url.pathname.replace(basePath, '');
       const route = this.getRouteForPath(urlPath, originalReq.method);
       if (!route) {
         this.logger.info(`Route for ${originalReq.method}:${urlPath} not found`);
@@ -206,7 +208,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
       this.logger.info(`Calling route ${route.path}`);
       this.logger.info(`${req.method}: ${req.path}`, {
-        params: req.params,
+        path: req.params,
         query: req.query,
         body: req.body,
       });
@@ -224,7 +226,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       const containsBody = route.method !== Method.GET;
       if (containsBody && route.validators.body) {
 
-        const body = route.validators.body.strict().safeParse(req.body);
+        const body = route.validators.body.safeParse(req.body);
         if (!body.success) {
           throw new ValidationError(body.error, ValidationLocation.Body);
         }

@@ -116,6 +116,7 @@ export class SchemaGenerator<
       requestParams: requestParams,
       description: route.description,
       tags: route.tags,
+      operationId: route.operationId,
       responses: {
         200: {
           description: this.routeSpec.generator?.goodResponseDescription ?? 'Good Response',

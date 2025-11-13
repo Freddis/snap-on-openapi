@@ -32,13 +32,14 @@ describe('DescriptionChecker', () => {
 
   test('Checks response validator descriptions', async ({expect}) => {
     const api = TestUtils.createOpenApi();
+    const responseValidator = z.string();
     const route = api.factory.createRoute({
       type: SampleRouteType.Public,
       method: Method.GET,
       path: '/something',
       description: 'Testing route description',
       validators: {
-        response: z.string(),
+        response: responseValidator,
       },
       handler: () => Promise.resolve('Something'),
     });
@@ -48,7 +49,7 @@ describe('DescriptionChecker', () => {
       api.addRoute(route);
     }).toThrowError(new Error("Route 'GET:/something': responseValidator missing openapi description on field 'responseValidator'"));
 
-    route.validators.response = route.validators.response.openapi({description: 'Something useful'});
+    route.validators.response = responseValidator.openapi({description: 'Something useful'});
     expect(() => {
       api.addRoute(route);
     }).not.toThrowError();

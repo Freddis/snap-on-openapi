@@ -21,7 +21,7 @@ export class RoutingFactory<
       TResponseValidator extends ZodFirstPartySchemaTypes | undefined = undefined,
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TPathValidator extends ZodObject<ZodRawShape> | undefined = undefined,
-      TBodyValidator extends ZodObject<ZodRawShape> | undefined = undefined,
+      TBodyValidator extends ZodFirstPartySchemaTypes | undefined = undefined,
       TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined = undefined,
     >(
       params: Route<

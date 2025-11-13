@@ -12,6 +12,7 @@ import z from 'zod';
 import {Method} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {OpenApi} from '../../OpenApi';
+import {ExpressWrapper} from './ExpressWrapper';
 
 describe('ExpressWrapper', () => {
 
@@ -51,6 +52,39 @@ describe('ExpressWrapper', () => {
     const goodResponse = await supertest(app).post('/api/post').send({name: 'John'});
     expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
     expect(goodResponse.body, 'Should respond with body field').toEqual('John');
+  });
+
+  test('Can properly convert express request to request', async () => {
+
+    const req: ExpressRequest = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: '{"name":"John"}',
+      method: 'POST',
+      protocol: 'http',
+      originalUrl: '/api/post?name=John',
+      host: 'localhost:3000',
+      on: function(): ExpressRequest {
+        throw new Error('Function not implemented.');
+      },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    class Mock extends ExpressWrapper<any, any, any> {
+      async covertExpressRequestToRequest(req: ExpressRequest): Promise<Request> {
+        return super.covertExpressRequestToRequest(req);
+      }
+      async requestBodyToString(): Promise<string | undefined> {
+        return '';
+      }
+    }
+    const mock = new Mock(TestUtils.createOpenApi());
+    const request = await mock.covertExpressRequestToRequest(req);
+    expect(request.headers.get('Content-Type')).toBe('application/json');
+    expect(request.method).toBe('POST');
+    expect(request.url).toBe('http://localhost:3000/api/post?name=John');
+    // expect(request.body).toBe('{"name":"John"}'); // mock the request
+
   });
 
   test('Can responsd with headers', async () => {
@@ -211,9 +245,9 @@ describe('ExpressWrapper', () => {
       },
       body: '',
       method: 'GET',
-      protocol: '',
+      protocol: 'http',
       originalUrl: '/api/test-multi-headers',
-      host: 'http://localhost',
+      host: 'localhost',
       on: () => req,
     };
     const goodResponse = await appMock.test(req);
