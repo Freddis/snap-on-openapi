@@ -215,12 +215,12 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       const queryValidator = route.validators.query?.strict() ?? z.object({});
       const query = queryValidator.safeParse(req.query);
       if (!query.success) {
-        throw new ValidationError(query.error, ValidationLocation.Query);
+        throw new ValidationError(query.error, ValidationLocation.Query, req.query);
       }
       const pathvalidator = route.validators.path?.strict() ?? z.object({});
       const path = pathvalidator.safeParse(req.params);
       if (!path.success) {
-        throw new ValidationError(path.error, ValidationLocation.Path);
+        throw new ValidationError(path.error, ValidationLocation.Path, req.params);
       }
       let response: {body: unknown, headers: Record<string, string>};
       const containsBody = route.method !== Method.GET;
@@ -228,7 +228,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
         const body = route.validators.body.safeParse(req.body);
         if (!body.success) {
-          throw new ValidationError(body.error, ValidationLocation.Body);
+          throw new ValidationError(body.error, ValidationLocation.Body, req.body);
         }
         const context = await this.config.routes[route.type].contextFactory({
           route: route,
@@ -281,7 +281,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
       const validated = finalResponseValidator.safeParse(finalResponse);
       if (!validated.success) {
-        throw new ValidationError(validated.error, ValidationLocation.Response);
+        throw new ValidationError(validated.error, ValidationLocation.Response, finalResponse);
       }
       this.logger.info('Response: 200', validated.data);
       return {status: 200, body: validated.data.body, headers: validated.data.headers};

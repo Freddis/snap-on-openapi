@@ -4,13 +4,15 @@ import {ValidationLocation} from '../../enums/ValidationLocations';
 import {BuiltInError} from './BuiltInError';
 
 export class ValidationError extends BuiltInError {
-  private error: ZodError<unknown>;
-  private location: ValidationLocation;
+  protected error: ZodError<unknown>;
+  protected location: ValidationLocation;
+  protected data?: unknown;
 
-  constructor(error: ZodError<unknown>, location: ValidationLocation) {
+  constructor(error: ZodError<unknown>, location: ValidationLocation, data: unknown) {
     super(ErrorCode.ValidationFailed);
     this.error = error;
     this.location = location;
+    this.data = data;
   }
 
   getZodError() {
@@ -19,5 +21,8 @@ export class ValidationError extends BuiltInError {
 
   getLocation() {
     return this.location;
+  }
+  getData() {
+    return this.data;
   }
 }
