@@ -222,7 +222,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       if (!path.success) {
         throw new ValidationError(path.error, ValidationLocation.Path);
       }
-      let response: unknown;
+      let response: {body: unknown, headers: Record<string, string>};
       const containsBody = route.method !== Method.GET;
       if (containsBody && route.validators.body) {
 
@@ -266,11 +266,19 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
           }});
       }
 
-      const finalResponse = route.validators.responseHeaders ? response : {body: response, headers: {}};
+      const finalResponse: {
+        body: unknown,
+        headers: Record<string, string>
+      } = route.validators.responseHeaders ? response : {body: response, headers: {}};
       const finalResponseValidator = z.object({
         body: route.validators.response ?? z.undefined(),
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
       });
+      if (this.config.disableResponseValidation) {
+        this.logger.info('Response: 200', finalResponse);
+        return {status: 200, body: finalResponse.body, headers: finalResponse.headers};
+      }
+
       const validated = finalResponseValidator.safeParse(finalResponse);
       if (!validated.success) {
         throw new ValidationError(validated.error, ValidationLocation.Response);
@@ -285,7 +293,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   protected handleError(e: unknown, req: Request) {
     this.logger.error('Error during request openAPI route handling', e);
     try {
-      const response = this.config.handleError ? this.config.handleError(e, req) : this.config.defaultError;
+      const response = this.config.handleError ? this.config.handleError(e, {request: req, logger: this.logger}) : this.config.defaultError;
       const status = this.config.errors[response.code].status;
       const valid = this.config.errors[response.code].responseValidator.safeParse(response.body);
       if (!valid.success) {

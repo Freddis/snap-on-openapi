@@ -19,6 +19,7 @@ export type Config<
   TRouteConfigMap extends RouteConfigMap<TRouteTypes, TErrorCodes, TRouteParamMap, TRouteContextMap>,
 >
  = {
+  disableResponseValidation?: boolean;
   logger?: Logger;
   basePath: RoutePath
   routes: TRouteConfigMap
@@ -36,7 +37,7 @@ export type Config<
   apiVersion?: string
   servers?: Server[]
   logLevel?: LogLevel
-  handleError?: (e: unknown, req: Request) => ErrorResponse<TErrorCodes, TErrorConfigMap>
+  handleError?: (e: unknown, context:{request: Request, logger: Logger}) => ErrorResponse<TErrorCodes, TErrorConfigMap>
   middleware?: <T extends TRouteTypes>(
     route: AnyRoute<T>,
     ctx: Awaited<ReturnType<TRouteContextMap[T]>>
