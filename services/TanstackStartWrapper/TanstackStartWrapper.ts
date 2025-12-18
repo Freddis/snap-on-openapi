@@ -65,7 +65,8 @@ export class TanstackStartWrapper<
   getOpenApiRootMethods() {
     const processor = async (ctx: {request: Request}) => {
       const response = await this.service.processRootRoute(ctx.request);
-      const res = new Response(JSON.stringify(response.body), {
+      const body = response.body instanceof Buffer ? response.body : JSON.stringify(response.body);
+      const res = new Response(body, {
         status: response.status,
         headers: response.headers,
       });

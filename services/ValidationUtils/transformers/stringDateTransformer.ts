@@ -17,4 +17,4 @@ export const stringDateTransformer = z.union([
   .transform((x) => {
     return new Date(Date.parse(x));
   }),
-]).openapi({type: 'string', format: 'date-time'});
+]).openapi({type: 'string', format: 'date'});

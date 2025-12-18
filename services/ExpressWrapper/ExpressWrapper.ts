@@ -58,7 +58,12 @@ export class ExpressWrapper<
       for (const header of Object.entries(result.headers)) {
         res.header(header[0], header[1]);
       }
-      res.json(result.body);
+
+      if (result.body instanceof Buffer) {
+        res.send(result.body);
+      } else {
+        res.json(result.body);
+      }
     };
     const regex = new RegExp(`${route}.*`);
     expressApp.get(regex, handler);

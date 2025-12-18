@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {TestUtils} from '../TestUtils/TestUtils';
 import {ErrorCode} from '../../enums/ErrorCode';
-import {object, string} from 'zod';
+import {object, string, z} from 'zod';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {Method} from '../../enums/Methods';
 describe('TanstackStartWrapper', () => {
@@ -51,6 +51,34 @@ describe('TanstackStartWrapper', () => {
       const goodResponse = await methods.GET({request: TestUtils.createRequest('/test-headers')});
       expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
       expect(goodResponse.headers.get('X-Test'), 'Should contain test header').toEqual('Test header');
+    });
+
+    test('Can respond with buffer', async () => {
+      const api = TestUtils.createOpenApi();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/test-buffer',
+        description: 'My buffer test route',
+        validators: {
+          response: z.any().openapi({description: 'response'}),
+          responseHeaders: z.object({
+            'Content-Type': z.string(),
+          }),
+        },
+        handler: () => Promise.resolve({
+          body: Buffer.from('test buffer content', 'utf-8'),
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+        }),
+      });
+      api.addRoute(route);
+      const methods = api.wrappers.tanstackStart.getOpenApiRootMethods();
+      const goodResponse = await methods.GET({request: TestUtils.createRequest('/test-buffer')});
+      expect(goodResponse.status, 'Should be 200 on buffer route').toBe(200);
+      const body = await goodResponse.text();
+      expect(body, 'Should contain correct buffer text').toBe('test buffer content');
     });
 
     test('Can mount swagger routes correctly', async () => {

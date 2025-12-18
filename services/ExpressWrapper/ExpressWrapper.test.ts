@@ -71,10 +71,10 @@ describe('ExpressWrapper', () => {
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     class Mock extends ExpressWrapper<any, any, any> {
-      async covertExpressRequestToRequest(req: ExpressRequest): Promise<Request> {
+      override async covertExpressRequestToRequest(req: ExpressRequest): Promise<Request> {
         return super.covertExpressRequestToRequest(req);
       }
-      async requestBodyToString(): Promise<string | undefined> {
+      override async requestBodyToString(): Promise<string | undefined> {
         return '';
       }
     }
@@ -115,6 +115,37 @@ describe('ExpressWrapper', () => {
     const goodResponse = await supertest(app).get('/api/test-headers');
     expect(goodResponse.status, 'Should be 200 on sample route').toBe(200);
     expect(goodResponse.headers['x-test'], 'Should contain test header').toEqual('Test header');
+  });
+
+  test('Can respond with buffer', async () => {
+    const api = TestUtils.createOpenApi();
+    const app = express();
+    const route = api.factory.createRoute({
+      method: Method.GET,
+      type: SampleRouteType.Public,
+      path: '/test-buffer',
+      description: 'My buffer test route',
+      validators: {
+        response: z.any().openapi({description: 'response'}),
+        responseHeaders: z.object({
+          'Content-Type': z.string(),
+        }),
+      },
+      handler: () => Promise.resolve({
+        body: Buffer.from('test buffer content', 'utf-8'),
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      }),
+    });
+    api.addRoute(route);
+    api.wrappers.express.createOpenApiRootRoute(app);
+
+    // checking
+    const goodResponse = await supertest(app).get('/api/test-buffer');
+    expect(goodResponse.status, 'Should be 200 on buffer route').toBe(200);
+    expect(goodResponse.text, 'Should contain correct buffer text').toBe('test buffer content');
+    expect(goodResponse.headers['content-type'], 'Should contain Content-Type header').toContain('text/plain');
   });
 
   test('Can mount swagger routes correctly', async () => {
