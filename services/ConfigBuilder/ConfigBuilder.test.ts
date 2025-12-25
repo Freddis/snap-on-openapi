@@ -119,7 +119,7 @@ describe('ConfigBuilder', () => {
     }).defineGlobalConfig({
       basePath: '/api',
       skipDescriptionsCheck: true,
-      handleError: () => {
+      onError: () => {
         throw new Error('Function not implemented.');
       },
     }).create();

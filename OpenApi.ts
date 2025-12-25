@@ -29,6 +29,10 @@ import {InitialBuilder} from './types/InitialBuilder';
 import {DefaultRouteContextMap} from './services/ConfigBuilder/types/DefaultRouteContextMap';
 import {DefaultRouteParamsMap} from './services/ConfigBuilder/types/DefaultRouteParamsMap';
 import z from 'zod';
+import {OnErrorEvent} from './types/events/OnErrorEvent';
+import {OnRouteEvent} from './types/events/OnRouteEvent';
+import {OnHandlerEvent} from './types/events/OnHandlerEvent';
+import {OnResponseEvent} from './types/events/OnResponseEvent';
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   public static readonly builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -152,6 +156,9 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
     originalReq: Request
   ): Promise<{status: number; body: unknown, headers: Record<string, string>}> {
     try {
+      if (this.config.onRequest) {
+        await this.config.onRequest({request: originalReq, logger: this.logger});
+      }
       const url = new URL(originalReq.url);
       //routes should start with / and if the basepath is also / we need to collapse it, otherwise it's gonna be cut from the route
       const basePath = this.getBasePath() === '/' ? '' : this.getBasePath();
@@ -205,13 +212,19 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         query: reqQuery,
         body: body,
       };
-
-      this.logger.info(`Calling route ${route.path}`);
-      this.logger.info(`${req.method}: ${req.path}`, {
-        path: req.params,
-        query: req.query,
-        body: req.body,
-      });
+      const onRoute: OnRouteEvent = {
+        request: originalReq,
+        logger: this.logger,
+        path: urlPath,
+        method: originalReq.method,
+        params: pathParams,
+        query: reqQuery,
+        body: body,
+        route: route,
+      };
+      if (this.config.onRoute) {
+        await this.config.onRoute(onRoute);
+      }
       const queryValidator = route.validators.query?.strict() ?? z.object({});
       const query = queryValidator.safeParse(req.query);
       if (!query.success) {
@@ -222,49 +235,42 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       if (!path.success) {
         throw new ValidationError(path.error, ValidationLocation.Path, req.params);
       }
-      let response: {body: unknown, headers: Record<string, string>};
-      const containsBody = route.method !== Method.GET;
-      if (containsBody && route.validators.body) {
 
-        const body = route.validators.body.safeParse(req.body);
-        if (!body.success) {
-          throw new ValidationError(body.error, ValidationLocation.Body, req.body);
+      const containsBody = route.method !== Method.GET;
+      let bodyData: unknown = {};
+      if (containsBody && route.validators.body) {
+        const bodyResult = route.validators.body.safeParse(req.body);
+        if (!bodyResult.success) {
+          throw new ValidationError(bodyResult.error, ValidationLocation.Body, req.body);
         }
-        const context = await this.config.routes[route.type].contextFactory({
-          route: route,
-          request: originalReq,
-          params: {
-            query: query.data,
-            path: path.data,
-            body: body.data,
-          },
-        });
-        response = await route.handler({
-          ...context,
-          params: {
-            query: query.data,
-            path: path.data,
-            body: body.data,
-          },
-        });
-      } else {
-        const context = await this.config.routes[route.type].contextFactory({
-          route: route,
-          request: originalReq,
-          params: {
-            query: query.data,
-            path: path.data,
-            body: {},
-          },
-        });
-        response = await route.handler({
-          ...context,
-          params: {
-            query: query.data,
-            path: path.data,
-            body: {},
-          }});
+        bodyData = bodyResult.data;
       }
+      const context = await this.config.routes[route.type].contextFactory({
+        route: route,
+        request: originalReq,
+        logger: this.logger,
+        params: {
+          query: query.data,
+          path: path.data,
+          body: bodyData,
+        },
+      });
+      const onHandler: OnHandlerEvent = {
+        ...onRoute,
+        validated: {
+          query: query.data,
+          path: path.data,
+          body: bodyData,
+        },
+      };
+      const response = await route.handler({
+        ...context,
+        params: {
+          query: query.data,
+          path: path.data,
+          body: bodyData,
+        },
+      });
 
       const finalResponse: {
         body: unknown,
@@ -274,8 +280,14 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         body: route.validators.response ?? z.undefined(),
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
       });
+      const onResponse: OnResponseEvent = {
+        ...onHandler,
+        response: {status: 200, body: finalResponse.body, headers: finalResponse.headers},
+      };
       if (this.config.disableResponseValidation) {
-        this.logger.info('Response: 200', finalResponse);
+        if (this.config.onResponse) {
+          await this.config.onResponse(onResponse);
+        }
         return {status: 200, body: finalResponse.body, headers: finalResponse.headers};
       }
 
@@ -283,23 +295,28 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       if (!validated.success) {
         throw new ValidationError(validated.error, ValidationLocation.Response, finalResponse);
       }
-      this.logger.info('Response: 200', validated.data);
+      if (this.config.onResponse) {
+        await this.config.onResponse(onResponse);
+      }
       return {status: 200, body: validated.data.body, headers: validated.data.headers};
     } catch (e: unknown) {
-      return this.handleError(e, originalReq);
+      return await this.handleError(e, originalReq);
     }
   }
 
-  protected handleError(e: unknown, req: Request) {
-    this.logger.error('Error during request openAPI route handling', e);
+  protected async handleError(e: unknown, req: Request) {
     try {
-      const response = this.config.handleError ? this.config.handleError(e, {request: req, logger: this.logger}) : this.config.defaultError;
+      const event: OnErrorEvent = {
+        request: req,
+        logger: this.logger,
+        error: e,
+      };
+      const response = this.config.onError ? await this.config.onError(event) : this.config.defaultError;
       const status = this.config.errors[response.code].status;
       const valid = this.config.errors[response.code].responseValidator.safeParse(response.body);
       if (!valid.success) {
         throw new Error("Error response haven't passed validation");
       }
-      this.logger.info(`Response: '${status}'`, response.body);
       return {status: Number(status), body: response.body, headers: {}};
     } catch (e: unknown) {
       this.logger.error('Error during error handling', e);

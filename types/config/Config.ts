@@ -9,6 +9,11 @@ import {RouteConfigMap} from './RouteConfigMap';
 import {RouteContextMap} from './RouteContextMap';
 import {RouteExtraPropsMap} from './RouteExtraPropsMap';
 import {Server} from './Server';
+import {OnErrorEvent} from '../events/OnErrorEvent';
+import {OnHandlerEvent} from '../events/OnHandlerEvent';
+import {OnRequestEvent} from '../events/OnRequestEvent';
+import {OnResponseEvent} from '../events/OnResponseEvent';
+import {OnRouteEvent} from '../events/OnRouteEvent';
 
 export type Config<
   TRouteTypes extends string,
@@ -37,7 +42,11 @@ export type Config<
   apiVersion?: string
   servers?: Server[]
   logLevel?: LogLevel
-  handleError?: (e: unknown, context:{request: Request, logger: Logger}) => ErrorResponse<TErrorCodes, TErrorConfigMap>
+  onRequest?: (e: OnRequestEvent) => Promise<void>;
+  onRoute?: (e: OnRouteEvent) => Promise<void>;
+  onHandler?: (e: OnHandlerEvent) => Promise<void>;
+  onResponse?: (e: OnResponseEvent) => Promise<void>;
+  onError?: (e: OnErrorEvent) => Promise<ErrorResponse<TErrorCodes, TErrorConfigMap>>
   middleware?: <T extends TRouteTypes>(
     route: AnyRoute<T>,
     ctx: Awaited<ReturnType<TRouteContextMap[T]>>

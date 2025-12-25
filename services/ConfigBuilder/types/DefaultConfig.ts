@@ -8,6 +8,9 @@ import {FieldError} from '../../../types/errors/FieldError';
 import {UnknownErrorResponse} from '../../../types/errors/responses/UnknownErrorResponse';
 import {ValidationErrorResponse} from '../../../types/errors/responses/ValidationErrorResponse';
 import {ValidationError} from '../../../types/errors/ValidationError';
+import {OnErrorEvent} from '../../../types/events/OnErrorEvent';
+import {OnResponseEvent} from '../../../types/events/OnResponseEvent';
+import {OnRouteEvent} from '../../../types/events/OnRouteEvent';
 import {RoutePath} from '../../../types/RoutePath';
 import {DefaultErrorMap} from './DefaultErrorMap';
 import {DefaultRouteContextMap} from './DefaultRouteContextMap';
@@ -31,9 +34,23 @@ export class DefaultConfig implements Config<
       error: ErrorCode.UnknownError,
     },
   } as const;
-  handleError? = (e: unknown): ErrorResponse<ErrorCode, DefaultErrorMap> => {
-    if (e instanceof ValidationError) {
-      const zodError = e.getZodError();
+  onRequest? = () => Promise.resolve();
+  onRoute? = async (e: OnRouteEvent): Promise<void> => {
+    e.logger.info(`Calling route ${e.route.path}`);
+    e.logger.info(`${e.method}: ${e.request.url}`, {
+      path: e.path,
+      query: e.query,
+      body: e.body,
+    });
+  };
+  onHandler? = () => Promise.resolve();
+  onResponse? = async (e: OnResponseEvent) => {
+    e.logger.info(`Response: ${e.response.status}`, {body: e.response.body, headers: e.response.headers});
+  };
+  onError? = async (e: OnErrorEvent): Promise<ErrorResponse<ErrorCode, DefaultErrorMap>> => {
+    e.logger.error('Error during request openAPI route handling', {url: e.request.url, error: e.error});
+    if (e.error instanceof ValidationError) {
+      const zodError = e.error.getZodError();
       const map: FieldError[] = [];
       for (const issue of zodError.issues) {
         map.push({
@@ -41,11 +58,11 @@ export class DefaultConfig implements Config<
           message: issue.message,
         });
       }
-      if (e.getLocation() !== ValidationLocation.Response) {
+      if (e.error.getLocation() !== ValidationLocation.Response) {
         const response: ValidationErrorResponse = {
           error: {
             code: ErrorCode.ValidationFailed,
-            location: e.getLocation(),
+            location: e.error.getLocation(),
             fieldErrors: map,
           },
         };
@@ -53,7 +70,7 @@ export class DefaultConfig implements Config<
       }
     }
 
-    if (e instanceof BuiltInError && e.getCode() === ErrorCode.NotFound) {
+    if (e.error instanceof BuiltInError && e.error.getCode() === ErrorCode.NotFound) {
       return {code: ErrorCode.NotFound, body: {error: ErrorCode.NotFound}};
     }
 

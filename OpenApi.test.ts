@@ -126,6 +126,25 @@ describe('OpenApi', () => {
       expect(messages[0], 'Logs should be changed to "moo" lines').toBe('moo');
     });
 
+    test('Request logs can be overridden', async () => {
+      const logger = TestUtils.getTestLogger();
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+        logger,
+        logLevel: LogLevel.all,
+        onRequest: async (e) => {
+          e.logger.info('onRequest', {url: e.request.url});
+        },
+      }).create();
+      const response = await TestUtils.sendRequest(api, '/api/hi', Method.GET);
+      expect(response.status).toBe(404);
+      const message = logger.shiftMessage();
+      console.log(message);
+      expect(message, 'log should be called').not.toBeUndefined();
+      expect(message?.message, 'The log data should be the request').toBe('onRequest');
+      expect(message?.data, 'The log data should be the request').toEqual({url: 'http://localhost/api/hi'});
+    });
   });
 
 
@@ -472,7 +491,7 @@ describe('OpenApi', () => {
 
     test('Responds with default error if no error handler present', async () => {
       const conf = new DefaultConfig();
-      conf.handleError = undefined;
+      conf.onError = undefined;
       conf.skipDescriptionsCheck = true;
       const api = OpenApi.builder.create(SampleRouteType, ErrorCode, conf);
       const route = api.factory.createRoute({
@@ -496,7 +515,7 @@ describe('OpenApi', () => {
 
     test('Responds with default error if there is error in error handler', async () => {
       const conf = new DefaultConfig();
-      conf.handleError = () => {
+      conf.onError = () => {
         throw new Error('Something went wrong');
       };
       conf.skipDescriptionsCheck = true;
@@ -522,7 +541,7 @@ describe('OpenApi', () => {
 
     test('Responds with default error if error handler responded with unregistered error', async () => {
       const conf = new DefaultConfig();
-      conf.handleError = () => {
+      conf.onError = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return {code: ErrorCode.UnknownError, body: 'Something'} as any;
       };

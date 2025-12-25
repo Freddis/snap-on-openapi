@@ -3,6 +3,7 @@ import {OpenApi} from '../../OpenApi';
 import {Method} from '../../enums/Methods';
 import {SampleRouteType} from '../../enums/SampleRouteType';
 import {RoutePath} from '../../types/RoutePath';
+import {TestLogger} from './utils/TestLogger';
 
 export class TestUtils {
   static createRequest(route: RoutePath, method: Method = Method.GET, body?: object): Request {
@@ -59,5 +60,9 @@ export class TestUtils {
     }
     while (now < deadline);
     return null;
+  }
+
+  static getTestLogger() {
+    return new TestLogger('TestUtils');
   }
 }
