@@ -33,6 +33,7 @@ import {OnErrorEvent} from './types/events/OnErrorEvent';
 import {OnRouteEvent} from './types/events/OnRouteEvent';
 import {OnHandlerEvent} from './types/events/OnHandlerEvent';
 import {OnResponseEvent} from './types/events/OnResponseEvent';
+import {RouteResponse} from './types/RouteResponse';
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   public static readonly builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -154,7 +155,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
   async processRootRoute(
     originalReq: Request
-  ): Promise<{status: number; body: unknown, headers: Record<string, string>}> {
+  ): Promise<RouteResponse> {
     try {
       if (this.config.onRequest) {
         await this.config.onRequest({request: originalReq, logger: this.logger});
@@ -263,42 +264,53 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
           body: bodyData,
         },
       };
-      const response = await route.handler({
-        ...context,
+      const wrapper = this.config.routes[route.type].handlerWrapper ?? (async (handler) => handler());
+      const handler = async () => {
+        const response = await route.handler({
+          ...context,
+          params: {
+            query: query.data,
+            path: path.data,
+            body: bodyData,
+          },
+        });
+        return response;
+      };
+      const response = await wrapper(handler, {
+        route: route,
+        request: originalReq,
+        logger: this.logger,
         params: {
           query: query.data,
           path: path.data,
           body: bodyData,
         },
-      });
+      }, context);
 
-      const finalResponse: {
-        body: unknown,
-        headers: Record<string, string>
-      } = route.validators.responseHeaders ? response : {body: response, headers: {}};
       const finalResponseValidator = z.object({
         body: route.validators.response ?? z.undefined(),
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
+        status: z.literal(200),
       });
       const onResponse: OnResponseEvent = {
         ...onHandler,
-        response: {status: 200, body: finalResponse.body, headers: finalResponse.headers},
+        response,
       };
       if (this.config.disableResponseValidation) {
         if (this.config.onResponse) {
           await this.config.onResponse(onResponse);
         }
-        return {status: 200, body: finalResponse.body, headers: finalResponse.headers};
+        return response;
       }
 
-      const validated = finalResponseValidator.safeParse(finalResponse);
+      const validated = finalResponseValidator.safeParse(response);
       if (!validated.success) {
-        throw new ValidationError(validated.error, ValidationLocation.Response, finalResponse);
+        throw new ValidationError(validated.error, ValidationLocation.Response, response);
       }
       if (this.config.onResponse) {
         await this.config.onResponse(onResponse);
       }
-      return {status: 200, body: validated.data.body, headers: validated.data.headers};
+      return response;
     } catch (e: unknown) {
       return await this.handleError(e, originalReq);
     }

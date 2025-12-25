@@ -28,7 +28,7 @@ describe('TanstackStartWrapper', () => {
 
     test('Can process headers', async () => {
       const api = TestUtils.createOpenApi();
-      const route = api.factory.createRoute({
+      const route = api.factory.createCustomRoute({
         method: Method.GET,
         type: SampleRouteType.Public,
         path: '/test-headers',
@@ -41,6 +41,7 @@ describe('TanstackStartWrapper', () => {
         },
         handler: () => Promise.resolve({
           body: 'success',
+          status: 200,
           headers: {
             'X-Test': 'Test header',
           },
@@ -55,7 +56,7 @@ describe('TanstackStartWrapper', () => {
 
     test('Can respond with buffer', async () => {
       const api = TestUtils.createOpenApi();
-      const route = api.factory.createRoute({
+      const route = api.factory.createCustomRoute({
         method: Method.GET,
         type: SampleRouteType.Public,
         path: '/test-buffer',
@@ -68,6 +69,7 @@ describe('TanstackStartWrapper', () => {
         },
         handler: () => Promise.resolve({
           body: Buffer.from('test buffer content', 'utf-8'),
+          status: 200,
           headers: {
             'Content-Type': 'text/plain',
           },

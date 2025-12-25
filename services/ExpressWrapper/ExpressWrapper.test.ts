@@ -90,7 +90,7 @@ describe('ExpressWrapper', () => {
   test('Can responsd with headers', async () => {
     const api = TestUtils.createOpenApi();
     const app = express();
-    const route = api.factory.createRoute({
+    const route = api.factory.createCustomRoute({
       method: Method.GET,
       type: SampleRouteType.Public,
       path: '/test-headers',
@@ -103,6 +103,7 @@ describe('ExpressWrapper', () => {
       },
       handler: () => Promise.resolve({
         body: 'success',
+        status: 200,
         headers: {
           'X-Test': 'Test header',
         },
@@ -120,7 +121,7 @@ describe('ExpressWrapper', () => {
   test('Can respond with buffer', async () => {
     const api = TestUtils.createOpenApi();
     const app = express();
-    const route = api.factory.createRoute({
+    const route = api.factory.createCustomRoute({
       method: Method.GET,
       type: SampleRouteType.Public,
       path: '/test-buffer',
@@ -133,6 +134,7 @@ describe('ExpressWrapper', () => {
       },
       handler: () => Promise.resolve({
         body: Buffer.from('test buffer content', 'utf-8'),
+        status: 200,
         headers: {
           'Content-Type': 'text/plain',
         },

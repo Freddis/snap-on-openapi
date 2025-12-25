@@ -294,11 +294,47 @@ describe('OpenApi', () => {
       expect(res.status).toBe(200);
       expect(res.body).toBe('read');
     });
+
+    test('Wrapper factory is working', async () => {
+      const api = OpenApi.builder.customizeRoutes(
+        RouteType
+      ).defineRouteContexts({
+        [RouteType.User]: async () => {
+          return {currentPermission: 'user'};
+        },
+      }).defineRoutes({
+        [RouteType.User]: {
+          authorization: false,
+          handlerWrapper: async () => {
+            return {body: 'overriden', status: 200, headers: {}};
+          },
+        },
+      }).create();
+      const route = api.factory.createRoute({
+        type: RouteType.User,
+        method: Method.GET,
+        path: '/',
+        description: 'My fantastic route',
+        validators: {
+          response: z.string().openapi({description: 'response'}),
+        },
+        handler: async (context) => {
+          return context.currentPermission;
+        },
+      });
+      api.addRoutes('/', [route]);
+
+      const req = TestUtils.createRequest('/api', Method.GET);
+      const res = await api.processRootRoute(req);
+      expect(res.status).toBe(200);
+      expect(res.body).toBe('overriden');
+    });
+
   });
 
   test('Can respond with headers', async () => {
     const api = OpenApi.builder.create();
-    const route = api.factory.createRoute({
+    const route = api.factory.createCustomRoute({
       method: Method.GET,
       type: SampleRouteType.Public,
       path: '/',
@@ -312,6 +348,7 @@ describe('OpenApi', () => {
       handler: async () => ({
         body: '1',
         headers: {Custom: 'Custom Header'},
+        status: 200,
       }),
     });
     api.addRoute(route);

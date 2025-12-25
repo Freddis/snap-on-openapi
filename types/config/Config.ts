@@ -1,7 +1,6 @@
 import {ZodOpenApiVersion} from 'zod-openapi';
 import {Logger} from '../../services/Logger/Logger';
 import {LogLevel} from '../../services/Logger/types/LogLevel';
-import {AnyRoute} from '../AnyRoute';
 import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
 import {ErrorResponse} from './ErrorResponse';
@@ -47,8 +46,4 @@ export type Config<
   onHandler?: (e: OnHandlerEvent) => Promise<void>;
   onResponse?: (e: OnResponseEvent) => Promise<void>;
   onError?: (e: OnErrorEvent) => Promise<ErrorResponse<TErrorCodes, TErrorConfigMap>>
-  middleware?: <T extends TRouteTypes>(
-    route: AnyRoute<T>,
-    ctx: Awaited<ReturnType<TRouteContextMap[T]>>
-  ) => Promise<{body?: unknown, status?: number, headers?: Record<string, string>}>
 }

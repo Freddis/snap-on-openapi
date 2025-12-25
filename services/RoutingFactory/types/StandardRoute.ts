@@ -1,15 +1,18 @@
 import {z, ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
-import {Method} from '../enums/Methods';
-import {RoutePath} from './RoutePath';
-import {RouteResponse} from './RouteResponse';
-export interface Route<
+import {Method} from '../../../enums/Methods';
+import {RoutePath} from '../../../types/RoutePath';
+
+type BodyHandlerResponse<
+  T extends ZodFirstPartySchemaTypes | undefined = undefined
+> = Promise<T extends undefined ? void : z.infer<Exclude<T, undefined>>>
+
+export interface StandardRoute<
   TType extends string,
   TContext extends object,
   TResponseValidator extends ZodFirstPartySchemaTypes | undefined,
   TPathValidator extends ZodObject<ZodRawShape> | undefined,
   TQueryValidator extends ZodObject<ZodRawShape> | undefined,
   TBodyValidator extends ZodFirstPartySchemaTypes | undefined,
-  TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined,
   TMethod extends Method = Method
 > {
   tags?: string[];
@@ -23,7 +26,6 @@ export interface Route<
     path?: TPathValidator
     body?: TMethod extends 'GET' ? never : TBodyValidator
     response?: TResponseValidator
-    responseHeaders?: TResponseHeadersValidator
   }
   handler: (
     context: {
@@ -32,5 +34,6 @@ export interface Route<
         query: TQueryValidator extends ZodObject<ZodRawShape> ? z.infer<TQueryValidator> : object
         path: TPathValidator extends ZodObject<ZodRawShape> ? z.infer<TPathValidator> : object
     } } & TContext,
-  ) => Promise<RouteResponse>
+  ) => BodyHandlerResponse<TResponseValidator>
+
 }
