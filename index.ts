@@ -36,6 +36,14 @@ export type {AnyRouteConfigMap as OpenApiAnyRouteConfigMap} from './types/config
 export type {RouteMap as OpenApiRouteMap} from './types/RouteMap';
 export type {Route as OpenApiRoute} from './types/Route';
 export type {AnyRoute as OpenApiAnyRoute} from './types/AnyRoute';
+export type {RouteResponse as OpenApiRouteResponse} from './types/RouteResponse';
+
+//events
+export type {OnErrorEvent as OpenApiOnErrorEvent} from './types/events/OnErrorEvent';
+export type {OnHandlerEvent as OpenApiOnHandlerEvent} from './types/events/OnHandlerEvent';
+export type {OnRequestEvent as OpenApiOnRequestEvent} from './types/events/OnRequestEvent';
+export type {OnResponseEvent as OpenApiOnResponseEvent} from './types/events/OnResponseEvent';
+export type {OnRouteEvent as OpenApiOnRouteEvent} from './types/events/OnRouteEvent';
 
 //utils
 export type {DevelopmentUtils as OpenApiDevelopmentUtils} from './services/DevelopmentUtils/DevelopmentUtils';
