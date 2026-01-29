@@ -42,8 +42,10 @@ export type Config<
   servers?: Server[]
   logLevel?: LogLevel
   onRequest?: (e: OnRequestEvent) => Promise<void>;
-  onRoute?: (e: OnRouteEvent) => Promise<void>;
-  onHandler?: (e: OnHandlerEvent) => Promise<void>;
-  onResponse?: (e: OnResponseEvent) => Promise<void>;
-  onError?: (e: OnErrorEvent) => Promise<ErrorResponse<TErrorCodes, TErrorConfigMap>>
+  onRoute?: (
+    e: OnRouteEvent<TRouteTypes, TRouteParamMap>
+  ) => Promise<void>;
+  onHandler?: (e: OnHandlerEvent<TRouteTypes, TRouteParamMap>) => Promise<void>;
+  onResponse?: (e: OnResponseEvent<TRouteTypes, TRouteParamMap>) => Promise<void>;
+  onError?: (e: OnErrorEvent<TRouteTypes, TRouteParamMap>) => Promise<ErrorResponse<TErrorCodes, TErrorConfigMap>>
 }

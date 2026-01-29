@@ -4,4 +4,5 @@ import {DefaultRouteParamsMap} from './DefaultRouteParamsMap';
 
 export class DefaultRouteContextMap implements RouteContextMap<SampleRouteType, DefaultRouteParamsMap> {
   Public = async () => ({});
+  User = async () => ({});
 }

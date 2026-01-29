@@ -213,7 +213,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         query: reqQuery,
         body: body,
       };
-      const onRoute: OnRouteEvent = {
+      const onRoute: OnRouteEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
         request: originalReq,
         logger: this.logger,
         path: urlPath,
@@ -221,7 +221,8 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         params: pathParams,
         query: reqQuery,
         body: body,
-        route: route,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        route: route as any,
       };
       if (this.config.onRoute) {
         await this.config.onRoute(onRoute);
@@ -256,7 +257,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
           body: bodyData,
         },
       });
-      const onHandler: OnHandlerEvent = {
+      const onHandler: OnHandlerEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
         ...onRoute,
         validated: {
           query: query.data,
@@ -292,7 +293,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
         status: z.literal(200),
       });
-      const onResponse: OnResponseEvent = {
+      const onResponse: OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
         ...onHandler,
         response,
       };
@@ -318,7 +319,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
 
   protected async handleError(e: unknown, req: Request) {
     try {
-      const event: OnErrorEvent = {
+      const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
         request: req,
         logger: this.logger,
         error: e,

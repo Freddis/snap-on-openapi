@@ -35,7 +35,7 @@ export class DefaultConfig implements Config<
     },
   } as const;
   onRequest? = () => Promise.resolve();
-  onRoute? = async (e: OnRouteEvent): Promise<void> => {
+  onRoute? = async (e: OnRouteEvent<SampleRouteType, DefaultRouteParamsMap>): Promise<void> => {
     e.logger.info(`Calling route ${e.route.path}`);
     e.logger.info(`${e.method}: ${e.request.url}`, {
       path: e.path,
@@ -44,10 +44,10 @@ export class DefaultConfig implements Config<
     });
   };
   onHandler? = () => Promise.resolve();
-  onResponse? = async (e: OnResponseEvent) => {
+  onResponse? = async (e: OnResponseEvent<SampleRouteType, DefaultRouteParamsMap>) => {
     e.logger.info(`Response: ${e.response.status}`, {body: e.response.body, headers: e.response.headers});
   };
-  onError? = async (e: OnErrorEvent): Promise<ErrorResponse<ErrorCode, DefaultErrorMap>> => {
+  onError? = async (e: OnErrorEvent<SampleRouteType, DefaultRouteParamsMap>): Promise<ErrorResponse<ErrorCode, DefaultErrorMap>> => {
     e.logger.error('Error during request openAPI route handling', {url: e.request.url, error: e.error});
     if (e.error instanceof ValidationError) {
       const zodError = e.error.getZodError();

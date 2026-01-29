@@ -145,6 +145,53 @@ describe('OpenApi', () => {
       expect(message?.message, 'The log data should be the request').toBe('onRequest');
       expect(message?.data, 'The log data should be the request').toEqual({url: 'http://localhost/api/hi'});
     });
+
+    test('Log event receive extra props on routes', async () => {
+      enum RouteType {
+        Public = 'Public',
+        User = 'User',
+      }
+      const logger = TestUtils.getTestLogger();
+      const api = OpenApi.builder.customizeRoutes(RouteType).defineRouteExtraProps({
+        [RouteType.Public]: z.object({
+          permission: z.string(),
+        }),
+        [RouteType.User]: z.object({
+          permission: z.string(),
+        }),
+      }).defineRoutes({
+        [RouteType.Public]: {
+          authorization: false,
+        },
+        [RouteType.User]: {
+          authorization: true,
+        },
+      }).defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+        logger,
+        onRoute: async (e) => {
+          e.logger.info('onRoute', {permisson: e.route.permission});
+        },
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: RouteType.Public,
+        path: '/',
+        description: 'My test route',
+        validators: {
+          response: z.number(),
+        },
+        handler: async () => 1,
+        permission: 'testPermission',
+      });
+      api.addRoute(route);
+      const response = await TestUtils.sendRequest(api, '/api', Method.GET);
+      expect(response.status).toBe(200);
+      const message = logger.shiftMessage();
+      expect(message?.message).toBe('onRoute');
+      expect(message?.data).toEqual({permisson: 'testPermission'});
+    });
   });
 
 

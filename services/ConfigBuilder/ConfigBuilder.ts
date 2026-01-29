@@ -329,13 +329,14 @@ export class ConfigBuilder<
       return this.construct(conf);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const routeMap: any = this.routeMap ?? undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const contextMap: any = this.routeContextMap ?? undefined;
-    if (this.routeContextMap && this.routeMap) {
-      for (const key of Object.keys(routeMap)) {
-        routeMap[key].contextFactory = contextMap[key];
+    const contextMap = this.routeContextMap ?? undefined;
+    if (this.routeMap) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const keys = Object.keys(this.routeMap) as any as TRouteTypes[];
+      for (const key of keys) {
+        const factory = contextMap?.[key] ? contextMap[key] : async () => undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.routeMap[key].contextFactory = factory as any;
       }
     }
     // builder path
@@ -343,7 +344,7 @@ export class ConfigBuilder<
     const builtConf: TConfig = {
       ...def,
       ...this.conf,
-      ...(routeMap ? {routes: routeMap} : {}),
+      ...(this.routeMap ? {routes: this.routeMap} : {}),
       ...(this.errorMap ? {errors: this.errorMap} : {}),
       ...(this.defaultError ? {defaultError: this.defaultError} : {}),
     } as TConfig;
