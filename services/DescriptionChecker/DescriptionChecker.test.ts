@@ -30,6 +30,26 @@ describe('DescriptionChecker', () => {
     }).not.toThrowError();
   });
 
+  test('Corectly handles undefined response', async ({expect}) => {
+    const api = TestUtils.createOpenApi();
+    const route = api.factory.createRoute({
+      type: SampleRouteType.Public,
+      method: Method.GET,
+      path: '/something',
+      description: 'Testing route description',
+      validators: {
+        response: undefined,
+      },
+      handler: () => Promise.resolve(undefined),
+    });
+    // check
+    expect(() => {
+      api.addRoute(route);
+    }).not.toThrowError();
+
+  });
+
+
   test('Checks response validator descriptions', async ({expect}) => {
     const api = TestUtils.createOpenApi();
     const responseValidator = z.string();

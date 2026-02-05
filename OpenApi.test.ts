@@ -167,7 +167,7 @@ describe('OpenApi', () => {
           authorization: true,
         },
       }).defineGlobalConfig({
-        basePath: '/api',
+        basePath: '/',
         skipDescriptionsCheck: true,
         logger,
         onRoute: async (e) => {
@@ -186,7 +186,7 @@ describe('OpenApi', () => {
         permission: 'testPermission',
       });
       api.addRoute(route);
-      const response = await TestUtils.sendRequest(api, '/api', Method.GET);
+      const response = await TestUtils.sendRequest(api, '/', Method.GET);
       expect(response.status).toBe(200);
       const message = logger.shiftMessage();
       expect(message?.message).toBe('onRoute');
@@ -649,5 +649,52 @@ describe('OpenApi', () => {
       expect(response.status, 'Default default error has status 500').toBe(500);
       expect(response.body.error, 'Default default error is UnknownError').toBe(ErrorCode.UnknownError);
     });
+
+    test('Can have undefined response', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/',
+        description: 'My test route',
+        validators: {
+          response: undefined,
+        },
+        handler: async () => undefined,
+      });
+      api.addRoute(route);
+      //pre-check
+      const response = await TestUtils.sendRequest(api, '/api', Method.GET);
+      expect(response.status, 'Response errors should come with status 200').toBe(200);
+      expect(response.body, 'Response body should be undefined').toBe(undefined);
+    });
+
+    test('Response validation can be disabled', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+        disableResponseValidation: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/',
+        description: 'My test route',
+        validators: {
+          response: z.object({ok: z.boolean()}),
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        handler: async () => 1 as any,
+      });
+      api.addRoute(route);
+      //pre-check
+      const response = await TestUtils.sendRequest(api, '/api', Method.GET);
+      expect(response.status, 'Response errors should come with status 200').toBe(200);
+      expect(response.body, 'Response body should be undefined').toBe(1);
+    });
+
   });
 });

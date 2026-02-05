@@ -34,6 +34,7 @@ import {OnRouteEvent} from './types/events/OnRouteEvent';
 import {OnHandlerEvent} from './types/events/OnHandlerEvent';
 import {OnResponseEvent} from './types/events/OnResponseEvent';
 import {RouteResponse} from './types/RouteResponse';
+import {OnRequestEvent} from './types/events/OnRequestEvent';
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   public static readonly builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -156,9 +157,14 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   async processRootRoute(
     originalReq: Request
   ): Promise<RouteResponse> {
+    let onRequest: OnRequestEvent | undefined;
+    let onRoute: OnRouteEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> | undefined;
+    let onResponse: OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> | undefined;
+    let onHandler: OnHandlerEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> | undefined;
     try {
       if (this.config.onRequest) {
-        await this.config.onRequest({request: originalReq, logger: this.logger});
+        onRequest = {request: originalReq, logger: this.logger};
+        await this.config.onRequest(onRequest);
       }
       const url = new URL(originalReq.url);
       //routes should start with / and if the basepath is also / we need to collapse it, otherwise it's gonna be cut from the route
@@ -213,7 +219,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         query: reqQuery,
         body: body,
       };
-      const onRoute: OnRouteEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
+      onRoute = {
         request: originalReq,
         logger: this.logger,
         path: urlPath,
@@ -224,6 +230,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         route: route as any,
       };
+
       if (this.config.onRoute) {
         await this.config.onRoute(onRoute);
       }
@@ -257,7 +264,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
           body: bodyData,
         },
       });
-      const onHandler: OnHandlerEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
+      onHandler = {
         ...onRoute,
         validated: {
           query: query.data,
@@ -293,7 +300,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
         status: z.literal(200),
       });
-      const onResponse: OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
+      onResponse = {
         ...onHandler,
         response,
       };
@@ -313,13 +320,23 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       }
       return response;
     } catch (e: unknown) {
-      return await this.handleError(e, originalReq);
+      return await this.handleError(e, originalReq, {
+        ...onHandler,
+        ...onRequest,
+        ...onRoute,
+        ...onResponse,
+      });
     }
   }
 
-  protected async handleError(e: unknown, req: Request) {
+  protected async handleError(
+    e: unknown,
+    req: Request,
+    eventPieces?: Partial<OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']>>
+  ) {
     try {
       const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
+        ...eventPieces,
         request: req,
         logger: this.logger,
         error: e,

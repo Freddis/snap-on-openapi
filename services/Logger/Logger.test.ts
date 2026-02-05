@@ -135,4 +135,12 @@ describe('Logger', () => {
     expect(messages[messages.length - 2]).toContain('Hello there');
   });
 
+  test('Can handle non object data', async () => {
+    const logger = new Logger('invoker');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    logger.info('Hello there', 'test' as any);
+    expect(messages[messages.length - 2]).toContain('Hello there');
+    expect(messages[messages.length - 1]).toContain('test');
+  });
+
 });

@@ -159,4 +159,137 @@ describe('SchemaGenerator', () => {
     expect(existsSync('temp/schema.json')).toBe(true);
   });
 
+  test('Correctly generates schema for undefined response', () => {
+    const api = OpenApi.builder.customizeRoutes(SampleRouteType).defineRoutes({
+      [SampleRouteType.Public]: {
+        authorization: false,
+      },
+    }).defineGlobalConfig({
+      basePath: '/api',
+    }).create();
+    api.addRoute(api.factory.createRoute({
+      type: SampleRouteType.Public,
+      method: Method.GET,
+      path: '/',
+      description: 'Test route',
+      validators: {
+        response: undefined,
+      },
+      handler: () => Promise.resolve(undefined),
+    }));
+    const yml = api.schemaGenerator.getYaml().toString();
+    const regex = new RegExp('content', 'g');
+    const matches = yml.match(regex);
+    expect(matches).toBeDefined();
+    expect(matches?.length, 'Content should appear only once for default error').toBe(1);
+  });
+
+  describe('Media Type Overriding', () => {
+    test('Uses default application/json for response when not specified', () => {
+      const api = OpenApi.builder.customizeRoutes(SampleRouteType).defineRoutes({
+        [SampleRouteType.Public]: {
+          authorization: false,
+        },
+      }).create();
+      api.addRoute(api.factory.createRoute({
+        type: SampleRouteType.Public,
+        method: Method.GET,
+        path: '/',
+        description: 'Test route',
+        validators: {
+          response: z.string().openapi({description: 'Test response'}),
+        },
+        handler: () => Promise.resolve('test'),
+      }));
+      const yml = api.schemaGenerator.getYaml().toString();
+      expect(yml).toContain('application/json:');
+      expect(yml).toContain('schema:');
+      expect(yml).toContain('type: string');
+    });
+
+    test('Can override response media type with multiple custom types', () => {
+      const api = OpenApi.builder.customizeRoutes(SampleRouteType).defineRoutes({
+        [SampleRouteType.Public]: {
+          authorization: false,
+        },
+      }).defineGlobalConfig({
+        basePath: '/api',
+        generator: {
+          responseMediaTypes: ['application/json', 'application/xml', 'text/plain'],
+        },
+      }).create();
+      api.addRoute(api.factory.createRoute({
+        type: SampleRouteType.Public,
+        method: Method.GET,
+        path: '/',
+        description: 'Test route',
+        validators: {
+          response: z.string().openapi({description: 'Test response'}),
+        },
+        handler: () => Promise.resolve('test'),
+      }));
+      const yml = api.schemaGenerator.getYaml().toString();
+      // Check that 200 response contains all media types
+      const response200Section = yml.split('"200":')[1]?.split('"500":')[0] || '';
+      expect(response200Section).toContain('application/json:');
+      expect(response200Section).toContain('application/xml:');
+      expect(response200Section).toContain('text/plain:');
+    });
+
+    test('Uses default application/json for request body when not specified', () => {
+      const api = OpenApi.builder.customizeRoutes(SampleRouteType).defineRoutes({
+        [SampleRouteType.Public]: {
+          authorization: false,
+        },
+      }).create();
+      api.addRoute(api.factory.createRoute({
+        type: SampleRouteType.Public,
+        method: Method.POST,
+        path: '/',
+        description: 'Test route',
+        validators: {
+          body: z.object({
+            name: z.string().openapi({description: 'Name field'}),
+          }),
+          response: z.string().openapi({description: 'Response value'}),
+        },
+        handler: () => Promise.resolve('test'),
+      }));
+      const yml = api.schemaGenerator.getYaml().toString();
+      const requestBodySection = yml.split('requestBody:')[1];
+      expect(requestBodySection).toContain('application/json:');
+    });
+
+    test('Can override request media type with multiple custom types', () => {
+      const api = OpenApi.builder.customizeRoutes(SampleRouteType).defineRoutes({
+        [SampleRouteType.Public]: {
+          authorization: false,
+        },
+      }).defineGlobalConfig({
+        basePath: '/api',
+        generator: {
+          requestMediaTypes: ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data'],
+        },
+      }).create();
+      api.addRoute(api.factory.createRoute({
+        type: SampleRouteType.Public,
+        method: Method.POST,
+        path: '/',
+        description: 'Test route',
+        validators: {
+          body: z.object({
+            name: z.string().openapi({description: 'Name'}),
+          }),
+          response: z.string().openapi({description: 'Response value'}),
+        },
+        handler: () => Promise.resolve('test'),
+      }));
+      const yml = api.schemaGenerator.getYaml().toString();
+      const requestBodySection = yml.split('requestBody:')[1];
+      expect(requestBodySection).toContain('application/json:');
+      expect(requestBodySection).toContain('application/x-www-form-urlencoded:');
+      expect(requestBodySection).toContain('multipart/form-data:');
+    });
+  });
+
 });
