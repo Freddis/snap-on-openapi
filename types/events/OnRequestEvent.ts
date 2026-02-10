@@ -1,6 +1,6 @@
-import {Logger} from '../../services/Logger/Logger';
+import {ILogger} from '../../services/Logger/types/ILogger';
 
 export interface OnRequestEvent {
   request: Request;
-  logger: Logger;
+  logger: ILogger;
 }

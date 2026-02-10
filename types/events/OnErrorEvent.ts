@@ -1,4 +1,4 @@
-import {Logger} from '../../services/Logger/Logger';
+import {ILogger} from '../../services/Logger/types/ILogger';
 import {RouteExtraPropsMap} from '../config/RouteExtraPropsMap';
 import {OnResponseEvent} from './OnResponseEvent';
 
@@ -7,6 +7,6 @@ export interface OnErrorEvent<
   TContextMap extends RouteExtraPropsMap<TRouteType>
 > extends Partial<OnResponseEvent<TRouteType, TContextMap>> {
   request: Request;
-  logger: Logger;
+  logger: ILogger;
   error: unknown;
 }

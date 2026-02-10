@@ -409,6 +409,40 @@ describe('OpenApi', () => {
 
   describe('Route params', async () => {
 
+    test('Longer routes are prioritized', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/{q}',
+        description: 'My test route',
+        validators: {
+          path: z.object({
+            q: api.validators.strings.number,
+          }),
+          response: z.string(),
+        },
+        handler: async () => '/user/{q}',
+      });
+      const route2 = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/',
+        description: 'My test route',
+        validators: {
+          response: z.string(),
+        },
+        handler: async () => '/user',
+      });
+      api.addRoutes('/user', [route, route2]);
+      const response = await TestUtils.sendRequest(api, '/api/user', Method.GET);
+      expect(response.status).toBe(200);
+      expect(response.body).toBe('/user');
+    });
+
     test('Can process path params', async () => {
       const api = OpenApi.builder.defineGlobalConfig({
         basePath: '/api',

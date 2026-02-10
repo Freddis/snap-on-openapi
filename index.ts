@@ -54,5 +54,6 @@ export {ValidationUtils as OpenApiValidationUtils} from './services/ValidationUt
 export {TanstackStartWrapper as OpenApiTanstackStartWrapper} from './services/TanstackStartWrapper/TanstackStartWrapper';
 export {ExpressWrapper as OpenApiExpressWrapper} from './services/ExpressWrapper/ExpressWrapper';
 export {Logger as OpenApiLogger} from './services/Logger/Logger';
+export type {ILogger as IOpenApiLogger} from './services/Logger/types/ILogger';
 export {LogLevel as OpenApiLogLevel} from './services/Logger/types/LogLevel';
 export {ConfigBuilder as OpenApiConfigBuilder} from './services/ConfigBuilder/ConfigBuilder';

@@ -35,6 +35,7 @@ import {OnHandlerEvent} from './types/events/OnHandlerEvent';
 import {OnResponseEvent} from './types/events/OnResponseEvent';
 import {RouteResponse} from './types/RouteResponse';
 import {OnRequestEvent} from './types/events/OnRequestEvent';
+import {ILogger} from './services/Logger/types/ILogger';
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   public static readonly builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -43,7 +44,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   public readonly clientGenerator: ClientGenerator<TRouteTypes, TErrorCodes, TConfig> = new ClientGenerator(this);
   public readonly wrappers: Wrappers<TRouteTypes, TErrorCodes, TConfig>;
   protected routes: AnyRoute<TRouteTypes>[] = [];
-  protected logger: Logger;
+  protected logger: ILogger;
   protected basePath: RoutePath;
   protected developmentUtils: DevelopmentUtils;
   protected config: TConfig;

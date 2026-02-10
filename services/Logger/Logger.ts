@@ -1,6 +1,7 @@
+import {ILogger} from './types/ILogger';
 import {LogLevel} from './types/LogLevel';
 
-export class Logger {
+export class Logger implements ILogger {
   protected invoker: string;
   public static logLevel: LogLevel = LogLevel.all;
   public static showTime: boolean = true;

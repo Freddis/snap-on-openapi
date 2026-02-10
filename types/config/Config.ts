@@ -1,5 +1,4 @@
 import {ZodOpenApiVersion} from 'zod-openapi';
-import {Logger} from '../../services/Logger/Logger';
 import {LogLevel} from '../../services/Logger/types/LogLevel';
 import {RoutePath} from '../RoutePath';
 import {ErrorConfigMap} from './ErrorConfigMap';
@@ -13,6 +12,7 @@ import {OnHandlerEvent} from '../events/OnHandlerEvent';
 import {OnRequestEvent} from '../events/OnRequestEvent';
 import {OnResponseEvent} from '../events/OnResponseEvent';
 import {OnRouteEvent} from '../events/OnRouteEvent';
+import {ILogger} from '../../services/Logger/types/ILogger';
 
 export type Config<
   TRouteTypes extends string,
@@ -24,7 +24,7 @@ export type Config<
 >
  = {
   disableResponseValidation?: boolean;
-  logger?: Logger;
+  logger?: ILogger;
   basePath: RoutePath
   routes: TRouteConfigMap
   generator?: {

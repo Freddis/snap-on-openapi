@@ -1,7 +1,7 @@
 {
   "name": "snap-on-openapi",
   "author": "Alex Sarychev",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "Swiftly build type-checked OpenAPI applications with Zod and TypeScript",
   "type": "module",
   "license": "ISC",

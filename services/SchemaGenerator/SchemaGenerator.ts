@@ -7,22 +7,22 @@ import {z, ZodObject, ZodRawShape} from 'zod';
 import {AnyConfig} from '../../types/config/AnyConfig';
 import {ErrorConfig} from '../../types/config/ErrorConfig';
 import {Method} from '../../enums/Methods';
-import {Logger} from '../Logger/Logger';
 import {Server} from '../../types/config/Server';
 import {Info} from '../../types/config/Info';
+import {ILogger} from '../Logger/types/ILogger';
 
 export class SchemaGenerator<
   TRouteTypes extends string,
   TErrorCodes extends string,
   TConfig extends AnyConfig<TRouteTypes, TErrorCodes>
 > {
-  protected logger: Logger;
+  protected logger: ILogger;
   protected info: Info;
   protected routes: AnyRoute<TRouteTypes>[];
   protected servers: Server[];
   protected routeSpec: TConfig;
   constructor(
-    logger: Logger,
+    logger: ILogger,
     info: Info,
     spec: TConfig,
     routes: AnyRoute<TRouteTypes>[],
