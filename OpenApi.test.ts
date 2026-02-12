@@ -527,6 +527,96 @@ describe('OpenApi', () => {
 
     });
   });
+
+  describe('URL decoding', () => {
+    // const decodedCity = 'Düsseldorf';
+    // const encodedCity = 'D%C3%BCsseldorf';
+
+    test('Path params are URL-decoded', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/city/{city}',
+        description: 'Returns path param for decoding check',
+        validators: {
+          path: z.object({
+            city: string(),
+          }),
+          response: z.object({city: string()}),
+        },
+        handler: async (ctx) => ({city: ctx.params.path.city}),
+      });
+      api.addRoute(route);
+      const response = await TestUtils.sendRequest(
+        api,
+        '/api/city/D%C3%BCsseldorf',
+        Method.GET
+      );
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({city: 'Düsseldorf'});
+    });
+
+    test('Query params are URL-decoded', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/',
+        description: 'Returns query param for decoding check',
+        validators: {
+          query: z.object({
+            city: string(),
+          }),
+          response: z.object({city: string()}),
+        },
+        handler: async (ctx) => ({city: ctx.params.query.city}),
+      });
+      api.addRoute(route);
+      const response = await TestUtils.sendRequest(
+        api,
+        '/api?city=D%C3%BCsseldorf',
+        Method.GET
+      );
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({city: 'Düsseldorf'});
+    });
+
+    test('Query array values are URL-decoded', async () => {
+      const api = OpenApi.builder.defineGlobalConfig({
+        basePath: '/api',
+        skipDescriptionsCheck: true,
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: SampleRouteType.Public,
+        path: '/',
+        description: 'Returns query array for decoding check',
+        validators: {
+          query: z.object({
+            cities: z.array(string()),
+          }),
+          response: z.object({cities: z.array(string())}),
+        },
+        handler: async (ctx) => ({cities: ctx.params.query.cities}),
+      });
+      api.addRoute(route);
+      const response = await TestUtils.sendRequest(
+        api,
+        '/api?cities=D%C3%BCsseldorf&cities=T%C3%BCrkiye',
+        Method.GET
+      );
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({cities: ['Düsseldorf', 'Türkiye']});
+    });
+  });
+
   describe('Validation and Errors', () => {
     test('Validates path', async () => {
       const api = OpenApi.builder.defineGlobalConfig({

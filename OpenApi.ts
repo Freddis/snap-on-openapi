@@ -189,7 +189,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
             throw new Error(`Can't find '${name}' param in path`);
           }
           /* c8 ignore stop */
-          pathParams[name] = pathParts[i];
+          pathParams[name] = decodeURIComponent(pathParts[i]);
           continue;
         }
       }
@@ -205,14 +205,15 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       for (const [key, val] of queryEntries) {
         if (reqQuery[key] !== undefined) {
           if (Array.isArray(reqQuery[key])) {
-            reqQuery[key].push(val);
+            reqQuery[key].push(decodeURIComponent(val));
             continue;
           }
-          reqQuery[key] = [reqQuery[key], val];
+          reqQuery[key] = [reqQuery[key], decodeURIComponent(val)];
           continue;
         }
         reqQuery[key] = val;
       }
+
       const req = {
         path: urlPath,
         method: originalReq.method,
