@@ -6,6 +6,9 @@ export class TestLogger extends Logger {
   public shiftMessage() {
     return this.messages.shift();
   }
+  public popMessage() {
+    return this.messages.pop();
+  }
   protected override log(message: string, level: string, data?: object): void {
     this.messages.push({message, level, data});
   }

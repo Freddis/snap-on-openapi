@@ -146,6 +146,49 @@ describe('OpenApi', () => {
       expect(message?.data, 'The log data should be the request').toEqual({url: 'http://localhost/api/hi'});
     });
 
+    test('Log event receive route context on routes', async () => {
+      enum RouteType {
+        Public = 'Public',
+        User = 'User',
+      }
+      const logger = TestUtils.getTestLogger();
+      const api = OpenApi.builder.customizeRoutes(RouteType).defineRouteContexts({
+        [RouteType.Public]: async () => ({contextValue: 'public'}),
+        [RouteType.User]: async () => ({contextValue: 'user'}),
+      }).defineRoutes({
+        [RouteType.Public]: {
+          authorization: false,
+        },
+        [RouteType.User]: {
+          authorization: true,
+        },
+      }).defineGlobalConfig({
+        basePath: '/',
+        skipDescriptionsCheck: true,
+        logger,
+        onHandler: async (e) => {
+          e.logger.info('onRoute', {value: e.context.contextValue});
+        },
+      }).create();
+      const route = api.factory.createRoute({
+        method: Method.GET,
+        type: RouteType.Public,
+        path: '/',
+        description: 'My test route',
+        validators: {
+          response: z.number(),
+        },
+        handler: async () => 1,
+      });
+      api.addRoute(route);
+      const response = await TestUtils.sendRequest(api, '/', Method.GET);
+      expect(response.status).toBe(200);
+      logger.popMessage();
+      const message = logger.popMessage();
+      expect(message?.message).toBe('onRoute');
+      expect(message?.data).toEqual({value: 'public'});
+    });
+
     test('Log event receive extra props on routes', async () => {
       enum RouteType {
         Public = 'Public',

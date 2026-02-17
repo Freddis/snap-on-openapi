@@ -36,6 +36,7 @@ import {OnResponseEvent} from './types/events/OnResponseEvent';
 import {RouteResponse} from './types/RouteResponse';
 import {OnRequestEvent} from './types/events/OnRequestEvent';
 import {ILogger} from './services/Logger/types/ILogger';
+import {RouteContext} from './types/config/RouteContext';
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   public static readonly builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -160,8 +161,16 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   ): Promise<RouteResponse> {
     let onRequest: OnRequestEvent | undefined;
     let onRoute: OnRouteEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> | undefined;
-    let onResponse: OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> | undefined;
-    let onHandler: OnHandlerEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> | undefined;
+    let onResponse: OnResponseEvent<
+      TRouteTypes,
+      TConfig['routes'][TRouteTypes]['extraProps'],
+      RouteContext<TRouteTypes, TConfig>
+    > | undefined;
+    let onHandler: OnHandlerEvent<
+      TRouteTypes,
+      TConfig['routes'][TRouteTypes]['extraProps'],
+      RouteContext<TRouteTypes, TConfig>
+    > | undefined;
     try {
       if (this.config.onRequest) {
         onRequest = {request: originalReq, logger: this.logger};
@@ -268,6 +277,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       });
       onHandler = {
         ...onRoute,
+        context,
         validated: {
           query: query.data,
           path: path.data,
@@ -286,6 +296,9 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         });
         return response;
       };
+      if (this.config.onHandler) {
+        await this.config.onHandler(onHandler);
+      }
       const response = await wrapper(handler, {
         route: route,
         request: originalReq,
@@ -334,10 +347,10 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   protected async handleError(
     e: unknown,
     req: Request,
-    eventPieces?: Partial<OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']>>
+    eventPieces?: Partial<OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps'], RouteContext<TRouteTypes, TConfig>>>
   ) {
     try {
-      const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']> = {
+      const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps'], RouteContext<TRouteTypes, TConfig>> = {
         ...eventPieces,
         request: req,
         logger: this.logger,

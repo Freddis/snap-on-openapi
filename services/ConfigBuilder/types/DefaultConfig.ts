@@ -44,10 +44,12 @@ export class DefaultConfig implements Config<
     });
   };
   onHandler? = () => Promise.resolve();
-  onResponse? = async (e: OnResponseEvent<SampleRouteType, DefaultRouteParamsMap>) => {
+  onResponse? = async (e: OnResponseEvent<SampleRouteType, DefaultRouteParamsMap, object>) => {
     e.logger.info(`Response: ${e.response.status}`, {body: e.response.body, headers: e.response.headers});
   };
-  onError? = async (e: OnErrorEvent<SampleRouteType, DefaultRouteParamsMap>): Promise<ErrorResponse<ErrorCode, DefaultErrorMap>> => {
+  onError? = async (
+    e: OnErrorEvent<SampleRouteType, DefaultRouteParamsMap, object>
+  ): Promise<ErrorResponse<ErrorCode, DefaultErrorMap>> => {
     e.logger.error('Error during request openAPI route handling', {url: e.request.url, error: e.error});
     if (e.error instanceof ValidationError) {
       const zodError = e.error.getZodError();
