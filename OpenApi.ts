@@ -172,8 +172,9 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       RouteContext<TRouteTypes, TConfig>
     > | undefined;
     try {
+      const logger = await this.config.requestLogger?.(originalReq) ?? this.logger;
       if (this.config.onRequest) {
-        onRequest = {request: originalReq, logger: this.logger};
+        onRequest = {request: originalReq, logger};
         await this.config.onRequest(onRequest);
       }
       const url = new URL(originalReq.url);
@@ -182,7 +183,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       const urlPath = url.pathname.replace(basePath, '');
       const route = this.getRouteForPath(urlPath, originalReq.method);
       if (!route) {
-        this.logger.info(`Route for ${originalReq.method}:${urlPath} not found`);
+        logger.info(`Route for ${originalReq.method}:${urlPath} not found`);
         throw new BuiltInError(ErrorCode.NotFound);
       }
       // obtaining path params
@@ -232,7 +233,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       };
       onRoute = {
         request: originalReq,
-        logger: this.logger,
+        logger,
         path: urlPath,
         method: originalReq.method,
         params: pathParams,
@@ -268,7 +269,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       const context = await this.config.routes[route.type].contextFactory({
         route: route,
         request: originalReq,
-        logger: this.logger,
+        logger,
         params: {
           query: query.data,
           path: path.data,
@@ -302,7 +303,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       const response = await wrapper(handler, {
         route: route,
         request: originalReq,
-        logger: this.logger,
+        logger,
         params: {
           query: query.data,
           path: path.data,
@@ -352,8 +353,8 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
     try {
       const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps'], RouteContext<TRouteTypes, TConfig>> = {
         ...eventPieces,
+        logger: eventPieces?.logger ?? this.logger,
         request: req,
-        logger: this.logger,
         error: e,
       };
       const response = this.config.onError ? await this.config.onError(event) : this.config.defaultError;

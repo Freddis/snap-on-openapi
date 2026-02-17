@@ -25,6 +25,7 @@ export type Config<
  = {
   disableResponseValidation?: boolean;
   logger?: ILogger;
+  requestLogger?: (req: Request) => Promise<ILogger>
   basePath: RoutePath
   routes: TRouteConfigMap
   generator?: {
