@@ -1,12 +1,13 @@
+import {RouteContextMap} from '../config/RouteContextMap';
 import {RouteExtraPropsMap} from '../config/RouteExtraPropsMap';
-import {RouteResponse} from '../RouteResponse';
-import {OnHandlerEvent} from './OnHandlerEvent';
-export interface OnResponseEvent<
+import {OnResponseEventData} from './OnResponseEventData';
+
+export type OnResponseEvent<
   TRouteType extends string,
-  TContextMap extends RouteExtraPropsMap<TRouteType>,
-  TContext extends object
-> extends OnHandlerEvent<TRouteType, TContextMap, TContext> {
-  response: RouteResponse
-}
+  TExtraPropsMap extends RouteExtraPropsMap<TRouteType>,
+  TContextMap extends RouteContextMap<TRouteType, TExtraPropsMap>
+> = {
+  [key in TRouteType]: OnResponseEventData<key, TExtraPropsMap, TContextMap>
+}[TRouteType]
 
 

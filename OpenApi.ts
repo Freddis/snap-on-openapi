@@ -36,7 +36,9 @@ import {OnResponseEvent} from './types/events/OnResponseEvent';
 import {RouteResponse} from './types/RouteResponse';
 import {OnRequestEvent} from './types/events/OnRequestEvent';
 import {ILogger} from './services/Logger/types/ILogger';
-import {RouteContext} from './types/config/RouteContext';
+import {RouteContextMap} from './types/config/RouteContextMap';
+import {OnResponseEventData} from './types/events/OnResponseEventData';
+
 export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TConfig extends AnyConfig<TRouteTypes, TErrorCodes>> {
   public static readonly builder: InitialBuilder = OpenApi.getBuilder();
   public readonly validators: ValidationUtils = new ValidationUtils();
@@ -164,12 +166,12 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
     let onResponse: OnResponseEvent<
       TRouteTypes,
       TConfig['routes'][TRouteTypes]['extraProps'],
-      RouteContext<TRouteTypes, TConfig>
+      RouteContextMap<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']>
     > | undefined;
     let onHandler: OnHandlerEvent<
       TRouteTypes,
       TConfig['routes'][TRouteTypes]['extraProps'],
-      RouteContext<TRouteTypes, TConfig>
+      RouteContextMap<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']>
     > | undefined;
     try {
       const logger = await this.config.requestLogger?.(originalReq) ?? this.logger;
@@ -232,6 +234,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
         body: body,
       };
       onRoute = {
+        routeType: route.type,
         request: originalReq,
         logger,
         path: urlPath,
@@ -348,15 +351,22 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
   protected async handleError(
     e: unknown,
     req: Request,
-    eventPieces?: Partial<OnResponseEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps'], RouteContext<TRouteTypes, TConfig>>>
+    eventPieces?: Partial<
+    OnResponseEventData<
+      TRouteTypes,
+      TConfig['routes'][TRouteTypes]['extraProps'],
+      RouteContextMap<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']>
+    >
+    >
   ) {
     try {
-      const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps'], RouteContext<TRouteTypes, TConfig>> = {
-        ...eventPieces,
-        logger: eventPieces?.logger ?? this.logger,
-        request: req,
-        error: e,
-      };
+      const event: OnErrorEvent<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps'],
+       RouteContextMap<TRouteTypes, TConfig['routes'][TRouteTypes]['extraProps']>> = {
+         ...eventPieces,
+         logger: eventPieces?.logger ?? this.logger,
+         request: req,
+         error: e,
+       };
       const response = this.config.onError ? await this.config.onError(event) : this.config.defaultError;
       const status = this.config.errors[response.code].status;
       const valid = this.config.errors[response.code].responseValidator.safeParse(response.body);

@@ -1,14 +1,11 @@
+import {RouteContextMap} from '../config/RouteContextMap';
 import {RouteExtraPropsMap} from '../config/RouteExtraPropsMap';
-import {OnRouteEvent} from './OnRouteEvent';
-export interface OnHandlerEvent<
+import {OnHandlerEventData} from './OnHandlerEventData';
+
+export type OnHandlerEvent<
 TRouteType extends string,
-TContextMap extends RouteExtraPropsMap<TRouteType>,
-TContext extends object
-> extends OnRouteEvent<TRouteType, TContextMap> {
-  validated: {
-    query: Record<string, unknown>;
-    path: Record<string, unknown>;
-    body: unknown;
-  }
-  context: TContext
-}
+TExtraPropsMap extends RouteExtraPropsMap<TRouteType>,
+TContext extends RouteContextMap<TRouteType, TExtraPropsMap>
+> = {
+  [key in TRouteType]: OnHandlerEventData<key, TExtraPropsMap, TContext>
+}[TRouteType]

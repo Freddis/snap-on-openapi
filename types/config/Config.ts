@@ -46,9 +46,9 @@ export type Config<
   onRoute?: (
     e: OnRouteEvent<TRouteTypes, TRouteParamMap>
   ) => Promise<void>;
-  onHandler?: (e: OnHandlerEvent<TRouteTypes, TRouteParamMap, Awaited<ReturnType<TRouteContextMap[TRouteTypes]>>>) => Promise<void>;
-  onResponse?: (e: OnResponseEvent<TRouteTypes, TRouteParamMap, Awaited<ReturnType<TRouteContextMap[TRouteTypes]>>>) => Promise<void>;
+  onHandler?: (e: OnHandlerEvent<TRouteTypes, TRouteParamMap, TRouteContextMap>) => Promise<void>;
+  onResponse?: (e: OnResponseEvent<TRouteTypes, TRouteParamMap, TRouteContextMap>) => Promise<void>;
   onError?: (
-    e: OnErrorEvent<TRouteTypes, TRouteParamMap, Awaited<ReturnType<TRouteContextMap[TRouteTypes]>>>
+    e: OnErrorEvent<TRouteTypes, TRouteParamMap, TRouteContextMap>
   ) => Promise<ErrorResponse<TErrorCodes, TErrorConfigMap>>
 }

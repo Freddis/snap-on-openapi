@@ -237,6 +237,52 @@ describe('OpenApi', () => {
     });
   });
 
+  test('Log event can descriminate between routes to obtain route specific context and extra props', async () => {
+    enum RouteType {
+      Public = 'Public',
+      User = 'User',
+    }
+    const api = OpenApi.builder.customizeRoutes(RouteType).defineRouteExtraProps({
+      [RouteType.Public]: undefined,
+      [RouteType.User]: z.object({
+        userOnlyProp: z.number(),
+      }),
+    }).defineRouteContexts({
+      [RouteType.Public]: async () => ({contextValue: 'public'}),
+      [RouteType.User]: async () => ({contextValue: 'user', userOnly: 10}),
+    }).defineRoutes({
+      [RouteType.Public]: {
+        authorization: false,
+      },
+      [RouteType.User]: {
+        authorization: true,
+      },
+    }).defineGlobalConfig({
+      basePath: '/',
+      skipDescriptionsCheck: true,
+      onHandler: async (e) => {
+        e.logger.info('shared context prop', {value: e.context.contextValue});
+        if (e.routeType === RouteType.User) {
+          e.logger.info('specific context prop', {userOnly: e.context.userOnly});
+          e.logger.info('specific route prop', {userOnlyProp: e.route.userOnlyProp});
+        }
+      },
+    }).create();
+    const route = api.factory.createRoute({
+      method: Method.GET,
+      type: RouteType.Public,
+      path: '/',
+      description: 'My test route',
+      validators: {
+        response: z.number(),
+      },
+      handler: async () => 1,
+    });
+    api.addRoute(route);
+    const response = await TestUtils.sendRequest(api, '/', Method.GET);
+    expect(response.status).toBe(200);
+  });
+
 
   test('Has 1 default server and it should be localhost', async () => {
     const api = OpenApi.builder.create();

@@ -44,11 +44,11 @@ export class DefaultConfig implements Config<
     });
   };
   onHandler? = () => Promise.resolve();
-  onResponse? = async (e: OnResponseEvent<SampleRouteType, DefaultRouteParamsMap, object>) => {
+  onResponse? = async (e: OnResponseEvent<SampleRouteType, DefaultRouteParamsMap, DefaultRouteContextMap>) => {
     e.logger.info(`Response: ${e.response.status}`, {body: e.response.body, headers: e.response.headers});
   };
   onError? = async (
-    e: OnErrorEvent<SampleRouteType, DefaultRouteParamsMap, object>
+    e: OnErrorEvent<SampleRouteType, DefaultRouteParamsMap, DefaultRouteContextMap>
   ): Promise<ErrorResponse<ErrorCode, DefaultErrorMap>> => {
     e.logger.error('Error during request openAPI route handling', {url: e.request.url, error: e.error});
     if (e.error instanceof ValidationError) {
