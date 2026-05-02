@@ -8,7 +8,7 @@ export const stringDateTimeTransformer = z.union([
       const output = new Date(Date.parse(input));
       const outputStr = output.toISOString().replace('T', ' ');
       const inputStr = input.replace('T', ' ');
-      console.log(inputStr, outputStr);
+      // console.log(inputStr, outputStr);
       return inputStr === outputStr;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e: unknown) {
