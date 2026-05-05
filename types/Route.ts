@@ -1,14 +1,14 @@
-import {z, ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
+import {z, ZodTypeAny, ZodObject, ZodRawShape} from 'zod';
 import {Method} from '../enums/Methods';
 import {RoutePath} from './RoutePath';
 import {RouteResponse} from './RouteResponse';
 export interface Route<
   TType extends string,
   TContext extends object,
-  TResponseValidator extends ZodFirstPartySchemaTypes | undefined,
+  TResponseValidator extends ZodTypeAny | undefined,
   TPathValidator extends ZodObject<ZodRawShape> | undefined,
   TQueryValidator extends ZodObject<ZodRawShape> | undefined,
-  TBodyValidator extends ZodFirstPartySchemaTypes | undefined,
+  TBodyValidator extends ZodTypeAny | undefined,
   TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined,
   TMethod extends Method = Method
 > {
@@ -28,7 +28,7 @@ export interface Route<
   handler: (
     context: {
       params: {
-        body: TBodyValidator extends ZodFirstPartySchemaTypes ? z.infer<TBodyValidator> : object,
+        body: TBodyValidator extends ZodTypeAny ? z.infer<TBodyValidator> : object,
         query: TQueryValidator extends ZodObject<ZodRawShape> ? z.infer<TQueryValidator> : object
         path: TPathValidator extends ZodObject<ZodRawShape> ? z.infer<TPathValidator> : object
     } } & TContext,

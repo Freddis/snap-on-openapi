@@ -1,4 +1,4 @@
-import {ZodFirstPartySchemaTypes, ZodObject, ZodRawShape} from 'zod';
+import {ZodTypeAny, ZodObject, ZodRawShape} from 'zod';
 import {Method} from '../../enums/Methods';
 import {Route} from '../../types/Route';
 import {AnyConfig} from '../../types/config/AnyConfig';
@@ -19,10 +19,10 @@ export class RoutingFactory<
   public createCustomRoute<
       TType extends TRouteTypes,
       TMethod extends Method,
-      TResponseValidator extends ZodFirstPartySchemaTypes | undefined = undefined,
+      TResponseValidator extends ZodTypeAny | undefined = undefined,
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TPathValidator extends ZodObject<ZodRawShape> | undefined = undefined,
-      TBodyValidator extends ZodFirstPartySchemaTypes | undefined = undefined,
+      TBodyValidator extends ZodTypeAny | undefined = undefined,
       TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined = undefined,
     >(
       params: Route<
@@ -75,10 +75,10 @@ export class RoutingFactory<
   public createRoute<
       TType extends TRouteTypes,
       TMethod extends Method,
-      TResponseValidator extends ZodFirstPartySchemaTypes | undefined = undefined,
+      TResponseValidator extends ZodTypeAny | undefined = undefined,
       TQueryValidator extends ZodObject<ZodRawShape> | undefined = undefined,
       TPathValidator extends ZodObject<ZodRawShape> | undefined = undefined,
-      TBodyValidator extends ZodFirstPartySchemaTypes | undefined = undefined,
+      TBodyValidator extends ZodTypeAny | undefined = undefined,
       TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined = undefined,
     >(
       params: StandardRoute<
