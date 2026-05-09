@@ -337,7 +337,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       if (this.config.onResponse) {
         await this.config.onResponse(onResponse);
       }
-      return response;
+      return {status: validated.data.status, body: validated.data.body, headers: validated.data.headers};
     } catch (e: unknown) {
       return await this.handleError(e, originalReq, {
         ...onHandler,
