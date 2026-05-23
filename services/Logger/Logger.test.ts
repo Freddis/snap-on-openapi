@@ -6,8 +6,9 @@ import {LogLevel} from './types/LogLevel';
 describe('Logger', () => {
   const consoleLogBackup = console.log;
   const consoleDirBackup = console.dir;
-  let messages: string[] = [];
-  const fakeLog = (msg: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let messages: any[] = [];
+  const fakeLog = (msg: unknown) => {
     messages.push(msg);
     consoleLogBackup(msg);
   };
@@ -124,14 +125,18 @@ describe('Logger', () => {
 
   test('Can Handle circular objects', async () => {
     const logger = new Logger('invoker');
-    type TestType = {myNameIs: 'Alex', x: number[]} & {obj?: TestType, arr?: TestType[]};
-    const obj: TestType = {myNameIs: 'Alex', x: [1, 2, 3]};
+    type TestType = {myNameIs: 'Alex', x: number[], child: TestType2} & {obj?: TestType, arr?: TestType[]};
+    type TestType2 = {name: string} & {child?: TestType2};
+    const anotherObject : TestType2 = {name: 'Something'};
+    anotherObject.child = anotherObject;
+    const obj: TestType = {myNameIs: 'Alex', x: [1, 2, 3], child: anotherObject};
     obj.obj = obj;
     obj.arr = [obj, obj];
     logger.info('Hello there', obj);
     consoleLogBackup(messages);
     expect(JSON.stringify(messages[messages.length - 1])).toContain('myNameIs');
-    expect(JSON.stringify(messages[messages.length - 1])).toContain('circular->obj');
+    expect(JSON.stringify(messages[messages.length - 1])).toContain('circular->self');
+    expect(JSON.stringify(messages[messages.length - 1])).toContain('circular->child');
     expect(messages[messages.length - 2]).toContain('Hello there');
   });
 

@@ -70,28 +70,28 @@ export class Logger implements ILogger {
     }
     // todo: for some reason this is slow
     // update: this reason is DOM objects, which are much deeeper than backend objects
-    const seen = new Set();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recurse = (obj: Record<string, any>, path: string[] = []) => {
-      // This is done like that to avoid fighting with types.
-      // There is no actual need in processing arrays and objects in separate cycles.
+    const recurse = (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      obj: Record<string, any>,
+      path: string[] = ['self'],
+      seen: Map<object, string> = new Map()
+    ): unknown => {
+      const currentPath = path.join('.');
+      seen.set(obj, currentPath);
       if (Array.isArray(obj)) {
         const result: unknown[] = [];
-        let index = -1;
-        for (const val of obj) {
-          index++;
-          if (typeof val === 'object' && val) {
-            if (seen.has(val)) {
-              result.push('circular->' + path.join('.'));
-              continue;
+        obj.forEach((val, index) => {
+          if (typeof val === 'object' && val !== null) {
+            const existingPath = seen.get(val);
+            if (existingPath) {
+              result.push(`circular->${existingPath === 'self' ? 'self' : existingPath.replace('self.', '')}`);
+            } else {
+              result.push(recurse(val, [...path, index.toString()], new Map(seen)));
             }
-            seen.add(val);
-            const newPath = [...path, index.toString()];
-            result.push(recurse(val, newPath));
-            continue;
+          } else {
+            result.push(val);
           }
-          result.push(val);
-        }
+        });
         return result;
       }
       if (obj instanceof Date) {
@@ -99,17 +99,17 @@ export class Logger implements ILogger {
       }
       const result: Record<string, unknown> = {};
       for (const key of Object.keys(obj)) {
-        if (typeof obj[key] === 'object' && obj[key]) {
-          if (seen.has(obj[key])) {
-            result[key] = 'circular->' + path.join('.');
-            continue;
+        const val = obj[key];
+        if (typeof val === 'object' && val !== null) {
+          const existingPath = seen.get(val);
+          if (existingPath) {
+            result[key] = `circular->${existingPath === 'self' ? 'self' : existingPath.replace('self.', '')}`;
+          } else {
+            result[key] = recurse(val, [...path, key], new Map(seen));
           }
-          seen.add(obj[key]);
-          const newPath = [...path, key];
-          result[key] = recurse(obj[key], newPath);
-          continue;
+        } else {
+          result[key] = val;
         }
-        result[key] = obj[key];
       }
       return result;
     };
