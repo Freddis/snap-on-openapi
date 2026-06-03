@@ -14,15 +14,19 @@ export class Logger implements ILogger {
     return new Logger(invoker, this.invoker);
   }
 
+  protected get ctor() {
+    return this.constructor as typeof Logger;
+  }
+
   public info(message: string, data?: Record<string, unknown>) {
-    if (Logger.logLevel === LogLevel.error) {
+    if (this.ctor.logLevel === LogLevel.error) {
       return;
     }
     this.log(message, 'info', data);
   }
 
   public debug(message: string, data?: object) {
-    if (Logger.logLevel !== LogLevel.all) {
+    if (this.ctor.logLevel !== LogLevel.all) {
       return;
     }
     this.log(message, 'debug', data);
@@ -51,7 +55,7 @@ export class Logger implements ILogger {
 
   protected log(message: string, level: string, data?: object) {
     const now = new Date();
-    const timePart = Logger.showTime ? now.toISOString() : '';
+    const timePart = this.ctor.showTime ? now.toISOString() : '';
     const msg = `${timePart}[${level}][${this.invoker}]: ${message}`;
     console.log(msg);
     if (data) {
@@ -64,7 +68,7 @@ export class Logger implements ILogger {
     return plain;
   }
 
-  protected removeCircularity(data: object): unknown {
+  protected removeCircularity(data: object): object {
     if (typeof data !== 'object') {
       return data;
     }
@@ -75,7 +79,7 @@ export class Logger implements ILogger {
       obj: Record<string, any>,
       path: string[] = ['self'],
       seen: Map<object, string> = new Map()
-    ): unknown => {
+    ): object => {
       const currentPath = path.join('.');
       seen.set(obj, currentPath);
       if (Array.isArray(obj)) {
