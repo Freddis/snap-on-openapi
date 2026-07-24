@@ -12,6 +12,7 @@ export interface Route<
   TResponseHeadersValidator extends ZodObject<ZodRawShape> | undefined,
   TMethod extends Method = Method
 > {
+  status?: number;
   tags?: string[];
   operationId?: string;
   type: TType,

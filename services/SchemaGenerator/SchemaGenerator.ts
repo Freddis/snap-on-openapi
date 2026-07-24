@@ -118,7 +118,7 @@ export class SchemaGenerator<
       tags: route.tags,
       operationId: route.operationId,
       responses: {
-        200: {
+        [route.status ?? 200]: {
           description: this.routeSpec.generator?.goodResponseDescription ?? 'Good Response',
           content: route.validators.response ? content : undefined,
         },

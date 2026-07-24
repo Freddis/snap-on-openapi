@@ -317,7 +317,7 @@ export class OpenApi<TRouteTypes extends string, TErrorCodes extends string, TCo
       const finalResponseValidator = z.object({
         body: route.validators.response ?? z.undefined(),
         headers: route.validators.responseHeaders?.strict() ?? z.object({}),
-        status: z.literal(200),
+        status: z.literal(route.status ?? 200),
       });
       onResponse = {
         ...onHandler,

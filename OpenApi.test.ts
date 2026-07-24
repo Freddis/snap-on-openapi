@@ -34,6 +34,26 @@ describe('OpenApi', () => {
     expect(response.body).toBe('1');
   });
 
+  test('Can set custom status code', async () => {
+    const api = OpenApi.builder.create();
+    const route = api.factory.createCustomRoute({
+      type: SampleRouteType.Public,
+      method: Method.GET,
+      path: '/test',
+      description: 'My Test Route',
+      status: 201,
+      validators: {
+        response: z.string().openapi({description: 'Test Response'}),
+      },
+      handler: async () => ({body: '1', status: 201, headers: {}}),
+    });
+    api.addRoutes('/', [route]);
+    const req: Request = new Request('http://localhost/api/test', {});
+    const response = await api.processRootRoute(req);
+    expect(response.status).toBe(201);
+    expect(response.body).toBe('1');
+  });
+
   describe('Logging', () => {
     const consoleLogBackup = console.log;
     let messages: unknown[] = [];
