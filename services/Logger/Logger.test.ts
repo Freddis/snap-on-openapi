@@ -143,8 +143,18 @@ describe('Logger', () => {
   test('Can handle non object data', async () => {
     const logger = new Logger('invoker');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger.info('Hello there', 'test' as any);
+    logger.info('Hello there', 'test' as any); // we test human mistakes as well
     expect(messages[messages.length - 2]).toContain('Hello there');
+    expect(messages[messages.length - 1]).toContain('test');
+  });
+
+  test('Can handle buffers correctly and turns them into strings', async () => {
+    const logger = new Logger('invoker');
+    const buffer = Buffer.from('test');
+    logger.info('Hello there', {buffer});
+    expect(JSON.stringify(messages[messages.length - 1])).toContain('test');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    logger.info('Hello there', buffer as any); // we test human mistakes as well
     expect(messages[messages.length - 1]).toContain('test');
   });
 

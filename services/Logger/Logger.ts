@@ -68,7 +68,7 @@ export class Logger implements ILogger {
     return plain;
   }
 
-  protected removeCircularity(data: object): object {
+  protected removeCircularity(data: object): unknown {
     if (typeof data !== 'object') {
       return data;
     }
@@ -79,7 +79,7 @@ export class Logger implements ILogger {
       obj: Record<string, any>,
       path: string[] = ['self'],
       seen: Map<object, string> = new Map()
-    ): object => {
+    ): unknown => {
       const currentPath = path.join('.');
       seen.set(obj, currentPath);
       if (Array.isArray(obj)) {
@@ -100,6 +100,9 @@ export class Logger implements ILogger {
       }
       if (obj instanceof Date) {
         return obj;
+      }
+      if (obj instanceof Buffer) {
+        return obj.toString();
       }
       const result: Record<string, unknown> = {};
       for (const key of Object.keys(obj)) {
